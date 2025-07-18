@@ -70,6 +70,6 @@ npm run dev
 ## For more Content
 
 - For feedback and support, email us at Jatinsharma780090@gmail.com 📧
-- Follow me on [Linkedin](https://www.linkedin.com/in/Jatinsharma-) for updates. 🔗
+- Follow me on [Linkedin](https://www.linkedin.com/in/jatinsharma-/) for updates. 🔗
   
  **Note:** Development for this project began in January 2025. The initial codebase was maintained locally and later pushed to GitHub.

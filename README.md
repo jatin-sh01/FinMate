@@ -50,7 +50,7 @@ Follow these steps to set up FinMate on your local machine:
 ### Clone the repository:
 
 ```bash
-git clone https://github.com/SaxenaShourya/spend-smart.git
+git clone https://github.com/jatin-sh01/FinMate-.git
 ```
 
 ### Make the .env file in backend directory

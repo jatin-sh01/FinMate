@@ -27,7 +27,7 @@ app.use(cookieParser());
 
 // CORS Configuration
 const allowedOrigins = [
-  "https://spend-smart-dev.vercel.app",
+  "https://FinMate-dev.vercel.app",
   "http://localhost:8080",
   "http://localhost:3000"
 ];

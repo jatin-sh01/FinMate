@@ -21,9 +21,9 @@ const NavBar = () => {
           className="text-xl sm:text-2xl md:text-3xl uppercase cursor-pointer"
           onClick={() => navigate("/")}
         >
-          Spend{" "}
+          Fin{" "}
           <span className="text-primary text-base sm:text-xl md:text-2xl">
-            Smart.
+            Mate.
           </span>
         </h1>
       </div>

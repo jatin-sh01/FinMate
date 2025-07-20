@@ -1,10 +1,10 @@
 {
-  "name": "spend-smart-frontend",
+  "name": "FinMate-frontend",
   "private": true,
   "version": "1.0.0",
   "keywords": [
-    "spend-smart",
-    "spend-smart-frontend",
+    "FinMate",
+    "FinMate-frontend",
     "finance",
     "expense",
     "income",

@@ -1,10 +1,10 @@
 {
-  "name": "spend-smart-backend",
+  "name": "FinMate-backend",
   "version": "1.0.0",
   "main": "app.js",
   "keywords": [
-    "spend-smart",
-    "spend-smart-backend",
+    "FinMate",
+    "FinMate-backend",
     "finance",
     "expense",
     "income",
@@ -13,7 +13,7 @@
     "transaction management",
     "user-friendly"
   ],
-  "author": "Shourya Saxena",
+  "author": "Jatinsharma ",
   "license": "MIT",
   "description": "FinMate is a user-friendly platform designed to streamline your financial management effortlessly. With FinMate, you can easily track expenses, manage income, and stay on top of your finances effortlessly. Easily add transactions, and navigate your dashboard with ease. Take control of your finances with FinMate.",
   "type": "module",

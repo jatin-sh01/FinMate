@@ -27,7 +27,7 @@ app.use(cookieParser());
 
 // CORS Configuration
 const allowedOrigins = [
-  "https://FinMate-dev.vercel.app",
+  "https://fin-mate-lac.vercel.app/",
   "http://localhost:8080",
   "http://localhost:3000"
 ];

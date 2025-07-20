@@ -22,7 +22,7 @@ const NavBar = () => {
           onClick={() => navigate("/")}
         >
           Fin{" "}
-          <span className="text-primary text-base sm:text-xl md:text-2xl">
+          <span className="text-primary text-xl">  Fin<span className="">Mate</span>
             Mate.
           </span>
         </h1>

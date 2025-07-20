@@ -27,7 +27,7 @@ const SideBar = () => {
       <div className="px-4 flex items-center gap-x-2">
         <img src={logo} alt="FinMate logo" className="w-[2.5rem]" />
         <h5 className="text-xl font-outfit">
-          Spend<span className="text-primary text-xl">Smart.</span>
+          Fin<span className="text-primary text-xl">Mate</span>
         </h5>
       </div>
       <menu className="w-full h-full flex flex-col px-3 mt-12">

@@ -57,7 +57,7 @@ const Expenses = () => {
       .required("Description is required.")
       .min(5, "Description must be atleast 5 characters long.")
       .max(80, "Description should not be more than 80 characters."),
-    date: date().required("Date is required."),
+    date: object().required("Date is required."),
     category: string()
       .required("Category is required.")
       .oneOf(

@@ -20,7 +20,7 @@ export const addExpense = asyncHandler(async (req, res) => {
     amount,
     category,
     description,
-    date,
+    date: new Date(date),
   });
 
   await newExpense.save();
@@ -81,7 +81,7 @@ export const updateExpense = asyncHandler(async (req, res) => {
     if (error) {
       return res.status(400).json({ error: error });
     }
-    expense.date = date;
+    expense.date = new Date(date);
   }
   if (category) {
     const error = validateExpenseCategory(category);

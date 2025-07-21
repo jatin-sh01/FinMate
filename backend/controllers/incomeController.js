@@ -19,7 +19,7 @@ export const addIncome = asyncHandler(async (req, res) => {
     title,
     amount,
     category,
-    date,
+    date: new Date(date),
     description,
   });
 
@@ -81,7 +81,7 @@ export const updateIncome = asyncHandler(async (req, res) => {
     if (error) {
       return res.status(400).json({ error: error });
     }
-    income.date = date;
+    income.date = new Date(date);
   }
   if (category) {
     const error = validateIncomeCategory(category);

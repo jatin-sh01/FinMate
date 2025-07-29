@@ -17,6 +17,15 @@ import {
 import generateHash from "../utils/generateHash.js";
 import generateCookie from "../utils/generateCookie.js";
 import sendOTPemail from "../utils/OTPs/sendOTPemail.js";
+import {
+  generateTwoFactorSecret,
+  generateQRCode,
+  verifyTwoFactorToken,
+  generateBackupCodes,
+  verifyBackupCode,
+} from "../utils/twoFactor.js";
+import { currencyConfig, getCurrencyFromCountry } from "../utils/currency.js";
+import { sendEmail } from "../utils/emailService.js";
 
 // Controller function to register a new user
 export const registerUser = asyncHandler(async (req, res) => {
@@ -39,6 +48,15 @@ export const registerUser = asyncHandler(async (req, res) => {
   const newUser = new User({ username, email, password: hashedPassword });
 
   await newUser.save();
+
+  // Send welcome email
+  try {
+    await sendEmail(email, "welcome", { username });
+    console.log(`Welcome email sent to ${email}`);
+  } catch (error) {
+    console.error(`Failed to send welcome email to ${email}:`, error);
+    // Don't fail registration if email fails
+  }
 
   await generateCookie(res, newUser._id);
   res.status(200).json({
@@ -82,6 +100,24 @@ export const loginUser = asyncHandler(async (req, res) => {
     return res.status(401).json({ error: "Invalid user credentials!" });
   }
 
+  // Check if 2FA is enabled
+  if (existingUser.twoFactorEnabled) {
+    return res.status(200).json({
+      message: "Please enter your 2FA code to complete login.",
+      requires2FA: true,
+      email: existingUser.email,
+      user: {
+        _id: existingUser._id,
+        username: existingUser.username,
+        email: existingUser.email,
+        verified: existingUser.verified,
+        currency: existingUser.currency,
+        country: existingUser.country,
+        twoFactorEnabled: existingUser.twoFactorEnabled,
+      },
+    });
+  }
+
   await generateCookie(res, existingUser._id);
   return res.status(200).json({
     message: "Logged In Successfully!",
@@ -90,6 +126,9 @@ export const loginUser = asyncHandler(async (req, res) => {
       username: existingUser.username,
       email: existingUser.email,
       verified: existingUser.verified,
+      currency: existingUser.currency,
+      country: existingUser.country,
+      twoFactorEnabled: existingUser.twoFactorEnabled,
     },
   });
 });
@@ -106,7 +145,6 @@ export const logoutCurrentUser = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Logged Out Successfully!" });
 });
 
-
 // Controller function to get current user profile details.
 export const getCurrentUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
@@ -119,6 +157,9 @@ export const getCurrentUserProfile = asyncHandler(async (req, res) => {
         username: user.username,
         email: user.email,
         verified: user.verified,
+        currency: user.currency,
+        country: user.country,
+        twoFactorEnabled: user.twoFactorEnabled,
       },
     });
   } else {
@@ -173,6 +214,27 @@ export const updateCurrentUserProfile = asyncHandler(async (req, res) => {
 
   const updatedUser = await user.save();
 
+  // Send profile update email notification
+  try {
+    const updatedFields = [];
+    if (username && username !== user.username) updatedFields.push("Username");
+    if (email && email !== user.email) updatedFields.push("Email Address");
+
+    if (updatedFields.length > 0) {
+      await sendEmail(updatedUser.email, "profileUpdate", {
+        username: updatedUser.username,
+        updatedFields,
+      });
+      console.log(`Profile update email sent to ${updatedUser.email}`);
+    }
+  } catch (error) {
+    console.error(
+      `Failed to send profile update email to ${updatedUser.email}:`,
+      error
+    );
+    // Don't fail the update if email fails
+  }
+
   return res.status(200).json({
     message: "Profile updated Successfully!",
     user: {
@@ -180,6 +242,84 @@ export const updateCurrentUserProfile = asyncHandler(async (req, res) => {
       username: updatedUser.username,
       email: updatedUser.email,
       verified: updatedUser.verified,
+    },
+  });
+});
+
+// Controller function to update user currency
+export const updateUserCurrency = asyncHandler(async (req, res) => {
+  console.log("updateUserCurrency called with:", req.body);
+
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    console.log("User not found:", req.user._id);
+    return res.status(404).json({ error: "User not found!" });
+  }
+
+  const { currency, country } = req.body;
+  console.log("Currency update request:", { currency, country });
+
+  if (!currency) {
+    console.log("Currency not provided");
+    return res.status(400).json({ error: "Currency is required!" });
+  }
+
+  // Validate currency
+  if (!currencyConfig[currency]) {
+    console.log("Invalid currency:", currency);
+    return res.status(400).json({ error: "Invalid currency code!" });
+  }
+
+  // Auto-detect currency from country if country is provided
+  let finalCurrency = currency;
+  if (country && !currency) {
+    finalCurrency = getCurrencyFromCountry(country);
+  }
+
+  console.log("Setting currency:", finalCurrency, "for user:", user._id);
+
+  const oldCurrency = user.currency || "USD";
+  user.currency = finalCurrency;
+  if (country) user.country = country;
+
+  const updatedUser = await user.save();
+  console.log(
+    "User updated successfully:",
+    updatedUser._id,
+    "currency:",
+    updatedUser.currency
+  );
+
+  // Send currency update email notification
+  try {
+    if (oldCurrency !== finalCurrency) {
+      const currencySymbol = currencyConfig[finalCurrency]?.symbol || "$";
+      await sendEmail(user.email, "currencyUpdate", {
+        username: user.username,
+        oldCurrency,
+        newCurrency: finalCurrency,
+        currencySymbol,
+      });
+      console.log(`Currency update email sent to ${user.email}`);
+    }
+  } catch (error) {
+    console.error(
+      `Failed to send currency update email to ${user.email}:`,
+      error
+    );
+    // Don't fail the update if email fails
+  }
+
+  return res.status(200).json({
+    message: "Currency updated successfully!",
+    user: {
+      _id: updatedUser._id,
+      username: updatedUser.username,
+      email: updatedUser.email,
+      verified: updatedUser.verified,
+      currency: updatedUser.currency,
+      country: updatedUser.country,
     },
   });
 });
@@ -215,6 +355,19 @@ export const resetPassword = asyncHandler(async (req, res) => {
   }
 
   await user.updateOne({ password: await generateHash(newPassword) });
+
+  // Send password reset notification email
+  try {
+    await sendEmail(user.email, "passwordReset", { username: user.username });
+    console.log(`Password reset email sent to ${user.email}`);
+  } catch (error) {
+    console.error(
+      `Failed to send password reset email to ${user.email}:`,
+      error
+    );
+    // Don't fail the password reset if email fails
+  }
+
   res.status(200).json({ message: "Password updated successfully!" });
 });
 
@@ -289,5 +442,231 @@ export const verifyOTP = asyncHandler(async (req, res) => {
       verified: updatedUser.verified,
     },
     message: "Email has been verified successfully!",
+  });
+});
+
+// Setup 2FA - Generate QR code for user
+export const setup2FA = asyncHandler(async (req, res) => {
+  const userID = req.user._id;
+  console.log("Setup 2FA request for user:", userID);
+
+  const user = await User.findById(userID);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found!" });
+  }
+
+  if (user.twoFactorEnabled) {
+    return res
+      .status(400)
+      .json({ error: "2FA is already enabled for this account!" });
+  }
+
+  console.log("Generating 2FA secret for user:", user.email);
+
+  // Generate secret and QR code
+  const { secret, otpauthUrl } = generateTwoFactorSecret(user.email);
+  const qrCodeDataURL = await generateQRCode(otpauthUrl);
+
+  // Store the secret temporarily (will be permanently saved when user confirms)
+  await User.findByIdAndUpdate(userID, { twoFactorSecret: secret });
+
+  console.log("2FA secret stored for user:", userID);
+
+  res.status(200).json({
+    message:
+      "2FA setup initiated. Please scan the QR code with your authenticator app.",
+    qrCode: qrCodeDataURL,
+    secret: secret, // For manual entry if QR scan doesn't work
+  });
+});
+
+// Enable 2FA - Verify token and enable 2FA
+export const enable2FA = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+  const userID = req.user._id;
+
+  console.log("Enable 2FA request:", {
+    token: token ? "provided" : "missing",
+    userID,
+  });
+
+  if (!token) {
+    return res.status(400).json({ error: "2FA token is required!" });
+  }
+
+  const user = await User.findById(userID);
+  if (!user) {
+    return res.status(404).json({ error: "User not found!" });
+  }
+
+  console.log("User found:", {
+    email: user.email,
+    twoFactorSecret: user.twoFactorSecret ? "exists" : "missing",
+    twoFactorEnabled: user.twoFactorEnabled,
+  });
+
+  if (!user.twoFactorSecret) {
+    return res
+      .status(400)
+      .json({ error: "2FA setup not initiated. Please setup 2FA first!" });
+  }
+
+  // Verify the token
+  const isValidToken = verifyTwoFactorToken(user.twoFactorSecret, token);
+  console.log("Token verification result:", isValidToken);
+
+  if (!isValidToken) {
+    return res
+      .status(400)
+      .json({ error: "Invalid 2FA token. Please try again!" });
+  }
+
+  // Generate backup codes
+  const backupCodes = generateBackupCodes();
+
+  // Enable 2FA
+  await User.findByIdAndUpdate(userID, {
+    twoFactorEnabled: true,
+    backupCodes: backupCodes,
+  });
+
+  // Send 2FA enabled email notification
+  try {
+    await sendEmail(user.email, "twoFactorEnabled", {
+      username: user.username,
+    });
+    console.log(`2FA enabled email sent to ${user.email}`);
+  } catch (error) {
+    console.error(`Failed to send 2FA enabled email to ${user.email}:`, error);
+    // Don't fail the 2FA enable if email fails
+  }
+
+  res.status(200).json({
+    message: "2FA has been successfully enabled!",
+    backupCodes: backupCodes,
+    warning:
+      "Please save these backup codes in a safe place. You won't be able to see them again!",
+  });
+});
+
+// Disable 2FA
+export const disable2FA = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+  const userID = req.user._id;
+
+  if (!token || !password) {
+    return res
+      .status(400)
+      .json({ error: "2FA token and password are required!" });
+  }
+
+  const user = await User.findById(userID);
+  if (!user) {
+    return res.status(404).json({ error: "User not found!" });
+  }
+
+  if (!user.twoFactorEnabled) {
+    return res
+      .status(400)
+      .json({ error: "2FA is not enabled for this account!" });
+  }
+
+  // Verify password
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    return res.status(400).json({ error: "Invalid password!" });
+  }
+
+  // Verify 2FA token
+  const isValidToken = verifyTwoFactorToken(user.twoFactorSecret, token);
+  if (!isValidToken) {
+    return res.status(400).json({ error: "Invalid 2FA token!" });
+  }
+
+  // Disable 2FA
+  await User.findByIdAndUpdate(userID, {
+    twoFactorEnabled: false,
+    twoFactorSecret: null,
+    backupCodes: [],
+  });
+
+  res.status(200).json({
+    message: "2FA has been successfully disabled!",
+  });
+});
+
+// Verify 2FA during login
+export const verify2FA = asyncHandler(async (req, res) => {
+  const { email, token, isBackupCode } = req.body;
+
+  if (!email || !token) {
+    return res.status(400).json({ error: "Email and token are required!" });
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ error: "User not found!" });
+  }
+
+  if (!user.twoFactorEnabled) {
+    return res
+      .status(400)
+      .json({ error: "2FA is not enabled for this account!" });
+  }
+
+  let isValid = false;
+
+  if (isBackupCode) {
+    // Verify backup code
+    const backupCodeIndex = verifyBackupCode(user.backupCodes, token);
+    if (backupCodeIndex !== false) {
+      // Remove used backup code
+      const updatedBackupCodes = [...user.backupCodes];
+      updatedBackupCodes.splice(backupCodeIndex, 1);
+      await User.findByIdAndUpdate(user._id, {
+        backupCodes: updatedBackupCodes,
+      });
+      isValid = true;
+    }
+  } else {
+    // Verify TOTP token
+    isValid = verifyTwoFactorToken(user.twoFactorSecret, token);
+  }
+
+  if (!isValid) {
+    return res.status(400).json({
+      error: isBackupCode ? "Invalid backup code!" : "Invalid 2FA token!",
+    });
+  }
+
+  // Generate auth cookie
+  await generateCookie(res, user._id);
+
+  res.status(200).json({
+    message: "2FA verification successful!",
+    user: {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      verified: user.verified,
+      twoFactorEnabled: user.twoFactorEnabled,
+    },
+  });
+});
+
+// Get 2FA status
+export const get2FAStatus = asyncHandler(async (req, res) => {
+  const userID = req.user._id;
+  const user = await User.findById(userID);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found!" });
+  }
+
+  res.status(200).json({
+    twoFactorEnabled: user.twoFactorEnabled,
+    hasBackupCodes: user.backupCodes && user.backupCodes.length > 0,
+    remainingBackupCodes: user.backupCodes ? user.backupCodes.length : 0,
   });
 });

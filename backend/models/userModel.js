@@ -19,6 +19,50 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    twoFactorSecret: {
+      type: String,
+      default: null,
+    },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    backupCodes: [
+      {
+        type: String,
+      },
+    ],
+    currency: {
+      type: String,
+      default: "USD",
+      enum: [
+        "USD",
+        "EUR",
+        "GBP",
+        "INR",
+        "JPY",
+        "CAD",
+        "AUD",
+        "CHF",
+        "CNY",
+        "KRW",
+        "BRL",
+        "MXN",
+        "RUB",
+        "ZAR",
+        "SGD",
+        "HKD",
+        "NZD",
+        "SEK",
+        "NOK",
+        "DKK",
+        "PLN",
+      ],
+    },
+    country: {
+      type: String,
+      default: "US",
+    },
   },
   { timestamps: true }
 );

@@ -7,6 +7,7 @@ import authReducer from "../features/authenticate/authSlice";
 import logoutModalReducer from "../features/logoutModal/logoutModalSlice";
 import transactionViewAndUpdateModalReducer from "../features/TransactionModals/viewAndUpdateModal";
 import deleteTransactionModalReducer from "../features/TransactionModals/deleteModal";
+import themeReducer from "../features/theme/themeSlice";
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     logoutModal: logoutModalReducer,
     transactionViewAndUpdateModal: transactionViewAndUpdateModalReducer,
     deleteTransactionModal: deleteTransactionModalReducer,
+    theme: themeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware),

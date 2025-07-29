@@ -18,6 +18,7 @@
   }
   body {
     font-family: Nunito, sans-serif;
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors;
   }
   svg {
     @apply size-4 sm:size-5;
@@ -52,22 +53,59 @@
   .box-shadow {
     @apply shadow-[rgba(0,_0,_0,_0.4)_0px_30px_90px];
   }
-  .action-btn {
-    @apply text-secondary underline px-2 py-[0.1rem] font-nunito transition-all hover:text-primary hover:bg-secondary hover:rounded-full hover:no-underline cursor-pointer;
-  }
-  .link {
-    @apply inline-flex items-center gap-x-2 transition-all px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-300;
-  }
-  .activeLink {
-    @apply bg-primary text-white hover:bg-primary-600;
-  }
-  .icon {
-    @apply size-[2.5rem] md:size-[3rem] text-white bg-primary flex justify-center items-center p-2 rounded-full text-3xl;
-  }
-  .icon-second {
-    @apply size-[3rem] text-primary bg-primary-50 flex justify-center items-center p-2 rounded-full text-3xl;
-  }
   .box-shadow-second {
     @apply shadow-[rgba(0,_0,_0,_0.25)_0px_20px_40px];
+  }
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+  }
+  .action-btn {
+    @apply text-secondary dark:text-gray-400 underline px-2 py-[0.1rem] font-nunito transition-all hover:text-primary hover:bg-secondary dark:hover:bg-gray-700 hover:rounded-full hover:no-underline cursor-pointer;
+  }
+  .link {
+    @apply inline-flex items-center gap-x-2 transition-all px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 hover:scale-[1.02];
+  }
+  .activeLink {
+    @apply bg-primary text-white hover:bg-primary-600 scale-[1.02];
+  }
+  .icon {
+    @apply size-[2.5rem] md:size-[3rem] text-white bg-primary flex justify-center items-center p-2 rounded-full text-3xl shadow-lg hover:shadow-xl transition-all hover:scale-110;
+  }
+  .icon-second {
+    @apply size-[3rem] text-primary bg-primary-50 dark:bg-primary-900 flex justify-center items-center p-2 rounded-full text-3xl shadow-md hover:shadow-lg transition-all hover:scale-105;
+  }
+  .gradient-card {
+    @apply bg-gradient-to-br shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] rounded-xl;
+  }
+  .glass-effect {
+    @apply bg-white/10 dark:bg-gray-800/10 backdrop-blur-md border border-white/20 dark:border-gray-700/20;
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 }

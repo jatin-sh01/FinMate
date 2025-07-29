@@ -1,4 +1,5 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
 import {
   Button,
@@ -9,6 +10,7 @@ import {
   Textarea,
 } from "@nextui-org/react";
 import { Title, Category, Add, Amount } from "../../utils/Icons";
+import { getCurrencySymbol } from "../../utils/currencyFormatter";
 
 const TransactionForm = ({
   categories,
@@ -23,6 +25,8 @@ const TransactionForm = ({
   handleSubmit,
 }) => {
   const { title, amount, description, category, date } = formData;
+  const user = useSelector((state) => state.auth.user);
+  const currencySymbol = getCurrencySymbol(user?.currency);
 
   return (
     <form className="flex flex-col justify-center items-center space-y-4 w-full lg:w-[45%]">
@@ -46,7 +50,14 @@ const TransactionForm = ({
         onChange={handleOnChange}
         isInvalid={!!errors.amount}
         errorMessage={errors?.amount}
-        startContent={<Amount />}
+        startContent={
+          <div className="flex items-center gap-1">
+            <Amount />
+            <span className="text-sm font-semibold text-gray-600">
+              {currencySymbol}
+            </span>
+          </div>
+        }
         className="text-gray-500"
       />
       <div className="w-full grid grid-cols-2 gap-x-2">

@@ -12,10 +12,11 @@ import {
   Chip,
   Spinner,
 } from "@nextui-org/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { openModal as deleteModal } from "../../features/TransactionModals/deleteModal";
 import { openModal as viewAndUpdateModal } from "../../features/TransactionModals/viewAndUpdateModal";
 import { EyeOutline as Eye, Edit, Delete } from "../../utils/Icons";
+import { getCurrencySymbol } from "../../utils/currencyFormatter";
 
 const TransactionTable = ({
   data,
@@ -27,6 +28,8 @@ const TransactionTable = ({
   chipColorMap,
 }) => {
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const currencySymbol = getCurrencySymbol(user?.currency);
   return (
     <div className="w-full h-full flex justify-center">
       <Table
@@ -77,7 +80,10 @@ const TransactionTable = ({
               <TableCell className="text-primary font-calSans tracking-wider capitalize">
                 {title}
               </TableCell>
-              <TableCell>${amount}</TableCell>
+              <TableCell>
+                {currencySymbol}
+                {amount}
+              </TableCell>
               <TableCell>
                 <Chip
                   className="capitalize"

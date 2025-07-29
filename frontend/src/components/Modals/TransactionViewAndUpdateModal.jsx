@@ -28,9 +28,12 @@ import { updateLoader } from "../../features/loader/loaderSlice";
 import { useUpdateExpenseMutation } from "../../features/api/apiSlices/expenseApiSlice";
 import { useUpdateIncomeMutation } from "../../features/api/apiSlices/incomeApiSlice";
 import validateForm from "../../utils/validateForm";
+import { getCurrencySymbol } from "../../utils/currencyFormatter";
 
 const TransactionViewAndUpdateModal = () => {
   const data = useSelector((state) => state.transactionViewAndUpdateModal);
+  const user = useSelector((state) => state.auth.user);
+  const currencySymbol = getCurrencySymbol(user?.currency);
   const {
     isOpen,
     isDisabled,
@@ -123,16 +126,40 @@ const TransactionViewAndUpdateModal = () => {
   const handleUpdate = async (e) => {
     try {
       e.preventDefault();
-      const initialTransactionDate = await moment(
-        initialTransaction?.date
-      ).format("YYYY-MM-DD");
-      console.log(initialTransactionDate);
 
-      const formattedDate = await moment({
-        year: formData.date.year,
-        month: formData.date.month - 1,
-        day: formData.date.day,
-      }).format("YYYY-MM-DD");
+      // Safely handle initial transaction date
+      let initialTransactionDate;
+      if (initialTransaction?.date) {
+        const momentDate = moment(initialTransaction.date);
+        initialTransactionDate = momentDate.isValid()
+          ? momentDate.format("YYYY-MM-DD")
+          : moment().format("YYYY-MM-DD");
+      } else {
+        initialTransactionDate = moment().format("YYYY-MM-DD");
+      }
+
+      // Safely handle form date
+      let formattedDate;
+      try {
+        if (
+          formData.date &&
+          formData.date.year &&
+          formData.date.month &&
+          formData.date.day
+        ) {
+          formattedDate = moment({
+            year: formData.date.year,
+            month: formData.date.month - 1,
+            day: formData.date.day,
+          }).format("YYYY-MM-DD");
+        } else {
+          formattedDate = moment().format("YYYY-MM-DD");
+        }
+      } catch (dateError) {
+        console.error("Date formatting error:", dateError);
+        formattedDate = moment().format("YYYY-MM-DD");
+      }
+
       let updatedFormData = {
         ...formData,
         date: formattedDate,
@@ -174,13 +201,48 @@ const TransactionViewAndUpdateModal = () => {
 
   const setInitialData = async () => {
     if (initialTransaction) {
-      setFormData({
-        ...initialTransaction,
-        date: await parseDate(
-          moment(initialTransaction?.date).format("YYYY-MM-DD")
-        ),
-      });
-      setMainTitle(initialTransaction?.title);
+      try {
+        // Ensure the date is valid before parsing
+        const transactionDate = initialTransaction?.date;
+        let parsedDate;
+
+        // Check if date exists and is valid
+        if (transactionDate) {
+          const momentDate = moment(transactionDate);
+          if (momentDate.isValid()) {
+            const formattedDate = momentDate.format("YYYY-MM-DD");
+            parsedDate = parseDate(formattedDate);
+          } else {
+            // Use current date as fallback for invalid dates
+            parsedDate = parseDate(moment().format("YYYY-MM-DD"));
+          }
+        } else {
+          // Use current date as fallback for missing dates
+          parsedDate = parseDate(moment().format("YYYY-MM-DD"));
+        }
+
+        setFormData({
+          ...initialTransaction,
+          date: parsedDate,
+        });
+        setMainTitle(initialTransaction?.title || "Transaction");
+      } catch (error) {
+        console.error("Error setting initial data:", error);
+        // Final fallback - use current date and basic form data
+        try {
+          setFormData({
+            title: initialTransaction?.title || "",
+            amount: initialTransaction?.amount || "",
+            description: initialTransaction?.description || "",
+            category: initialTransaction?.category || "",
+            date: parseDate(moment().format("YYYY-MM-DD")),
+          });
+          setMainTitle(initialTransaction?.title || "Transaction");
+        } catch (fallbackError) {
+          console.error("Fallback error:", fallbackError);
+          toast.error("Error loading transaction data");
+        }
+      }
     }
   };
 
@@ -227,7 +289,14 @@ const TransactionViewAndUpdateModal = () => {
               onChange={handleOnChange}
               isInvalid={!!errors.amount}
               errorMessage={errors?.amount}
-              startContent={<Amount />}
+              startContent={
+                <div className="flex items-center gap-1">
+                  <Amount />
+                  <span className="text-sm font-semibold text-gray-600">
+                    {currencySymbol}
+                  </span>
+                </div>
+              }
               className="text-gray-500"
             />
             <div className="w-full flex gap-x-2">

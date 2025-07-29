@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { object, string } from "yup";
 import { toast } from "react-toastify";
+import { useDisclosure } from "@nextui-org/react";
 
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
@@ -14,6 +15,7 @@ import { updateLoader } from "../features/loader/loaderSlice";
 
 import loginImg from "../assets/login.webp";
 import { UserAuthForm, OtpForm } from "../components/Forms";
+import TwoFactorVerification from "../components/Modals/TwoFactorVerification";
 import validateForm from "../utils/validateForm";
 import { EmailInput, PasswordInput } from "../components/Inputs";
 import SubmitButton from "../components/SubmitButton";
@@ -29,7 +31,16 @@ const Login = () => {
   );
 
   const [otp, setOtp] = useState("");
-  const [step, setStep] = useState(1); // 1: Login, 2:(if user is not verified) OTP verification
+  const [step, setStep] = useState(1); // 1: Login, 2:(if user is not verified) OTP verification, 3: 2FA verification
+
+  // 2FA states
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [userEmailFor2FA, setUserEmailFor2FA] = useState("");
+  const {
+    isOpen: is2FAOpen,
+    onOpen: on2FAOpen,
+    onClose: on2FAClose,
+  } = useDisclosure();
 
   const validationSchema = object({
     email: string().required("Email is required.").email("Invalid Email."),
@@ -60,6 +71,16 @@ const Login = () => {
       const res = await login(formData).unwrap();
 
       dispatch(updateLoader(60));
+
+      // Check if 2FA is required
+      if (res.requires2FA) {
+        setUserEmailFor2FA(res.email);
+        setRequires2FA(true);
+        on2FAOpen();
+        toast.info(res.message);
+        return;
+      }
+
       await dispatch(setCredentials(res.user));
       toast.success(res.message || "Logged in successfully!");
       navigate("/");
@@ -126,6 +147,26 @@ const Login = () => {
     }
   };
 
+  // Handle 2FA verification success
+  const handle2FAVerificationSuccess = async (user) => {
+    try {
+      dispatch(updateLoader(60));
+      await dispatch(setCredentials(user));
+      toast.success("2FA verification successful!");
+      navigate("/");
+    } catch (error) {
+      toast.error("Failed to complete login");
+    } finally {
+      dispatch(updateLoader(100));
+      setRequires2FA(false);
+    }
+  };
+
+  const handle2FAClose = () => {
+    setRequires2FA(false);
+    setUserEmailFor2FA("");
+  };
+
   const hasErrors = Object.values(errors).some((error) => !!error);
 
   useEffect(() => {
@@ -180,6 +221,13 @@ const Login = () => {
         footer={step === 1 && "Don't have an account?"}
         footerLink={step === 1 && "Register"}
         footerLinkPath={step === 1 && "/register"}
+      />
+
+      <TwoFactorVerification
+        isOpen={is2FAOpen}
+        email={userEmailFor2FA}
+        onClose={handle2FAClose}
+        onVerificationSuccess={handle2FAVerificationSuccess}
       />
     </section>
   );

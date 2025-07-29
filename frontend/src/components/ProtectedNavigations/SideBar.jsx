@@ -23,10 +23,10 @@ const SideBar = () => {
   };
 
   return (
-    <nav className="hidden xl:flex flex-col w-[15%] h-full border-r-1 border-secondary py-3">
+    <nav className="hidden xl:flex flex-col w-[15%] h-full border-r-1 border-secondary dark:border-gray-700 py-3 bg-white dark:bg-gray-900 transition-colors">
       <div className="px-4 flex items-center gap-x-2">
         <img src={logo} alt="FinMate logo" className="w-[2.5rem]" />
-        <h5 className="text-xl font-outfit">
+        <h5 className="text-xl font-outfit text-gray-800 dark:text-white">
           Fin<span className="text-primary text-xl">Mate</span>
         </h5>
       </div>

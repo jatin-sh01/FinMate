@@ -57,6 +57,13 @@ export const userApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    updateUserCurrency: builder.mutation({
+      query: (data) => ({
+        url: `${USERS_URL}/currency`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -69,4 +76,5 @@ export const {
   useGetUserDetailsQuery,
   useUpdateUserDetailsMutation,
   useResetPasswordMutation,
+  useUpdateUserCurrencyMutation,
 } = userApiSlice;

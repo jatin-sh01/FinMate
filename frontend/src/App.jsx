@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ToastContainer, Slide } from "react-toastify";
+import { useSelector, useDispatch } from "react-redux";
 import "react-toastify/dist/ReactToastify.css";
 
 import TopLoadingBar from "./components/TopLoadingBar";
@@ -16,8 +17,21 @@ import {
   Settings,
 } from "./pages";
 import { PublicRoutes, ProtectedRoutes } from "./components/Guards";
+import { updateSystemTheme } from "./features/theme/themeSlice";
 
 const App = () => {
+  const dispatch = useDispatch();
+  const { theme } = useSelector((state) => state.theme);
+
+  useEffect(() => {
+    // Apply theme to document
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
+
   return (
     <>
       <TopLoadingBar />
@@ -25,7 +39,7 @@ const App = () => {
         position="bottom-right"
         autoClose={2500}
         pauseOnHover={false}
-        theme="dark"
+        theme={theme === "dark" ? "dark" : "light"}
         transition={Slide}
         toastClassName="font-outfit max-w-xs rounded-lg ml-4 sm:ml-0 mb-2"
       />

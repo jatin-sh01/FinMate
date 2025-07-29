@@ -11,7 +11,7 @@
   
   **Your comprehensive financial management platform**
   
-  [🚀 Live Demo](https://FinMate-dev.vercel.app) • [📖 Documentation](#features) • [🐛 Report Bug](https://github.com/jatin-sh01/FinMate-/issues) • [✨ Request Feature](https://github.com/jatin-sh01/FinMate-/issues)
+  [🚀 Live Demo](https://fin-mate-lac.vercel.app/) • [📖 Documentation](#features) • [🐛 Report Bug](https://github.com/jatin-sh01/FinMate-/issues) • [✨ Request Feature](https://github.com/jatin-sh01/FinMate-/issues)
 </div>
 
 ---

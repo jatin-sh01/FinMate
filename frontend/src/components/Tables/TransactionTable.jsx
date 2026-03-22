@@ -51,7 +51,8 @@ const TransactionTable = ({
         }
         classNames={{
           base: "pb-12",
-          wrapper: "h-full px-8 box-shadow-second",
+          wrapper:
+            "h-full px-5 md:px-8 surface-card shadow-[0_20px_45px_-28px_rgba(99,102,241,0.55)]",
           table: !data ? "h-full" : "",
         }}
       >
@@ -71,7 +72,7 @@ const TransactionTable = ({
           loadingState={isLoading ? "loading" : "idle"}
           emptyContent={
             !data && !isLoading
-              ? `No ${name}s to display. Please add some ${name}s!`
+              ? `No ${name}s to display yet. Add your first ${name} to get insights.`
               : ""
           }
         >

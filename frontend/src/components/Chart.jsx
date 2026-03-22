@@ -17,20 +17,17 @@ const Chart = ({ data }) => {
   const user = useSelector((state) => state.auth.user);
   const currencySymbol = getCurrencySymbol(user?.currency);
 
-  // Debug log to check if data is being passed
-  console.log("Chart data:", data);
-
   // Check if data is empty or invalid
   if (!data || data.length === 0) {
     return (
-      <div className="w-full h-full bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center">
-        <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white text-center">
+      <div className="w-full h-full surface-card p-6 flex flex-col items-center justify-center">
+        <h3 className="text-xl font-semibold mb-4 section-title text-center">
           Financial Overview
         </h3>
         <div className="flex flex-col items-center justify-center flex-1">
-          <div className="w-16 h-16 mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 mb-4 bg-indigo-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-gray-400"
+              className="w-8 h-8 text-indigo-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -43,10 +40,10 @@ const Chart = ({ data }) => {
               />
             </svg>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 text-center">
+          <p className="section-subtitle text-center">
             No data available for chart
           </p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 text-center">
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1 text-center">
             Add some transactions to see your financial overview
           </p>
         </div>
@@ -57,13 +54,13 @@ const Chart = ({ data }) => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <p className="text-gray-900 dark:text-white font-medium">{`Date: ${label}`}</p>
+        <div className="rounded-xl border border-indigo-100/70 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 px-4 py-3 shadow-xl backdrop-blur-md">
+          <p className="text-slate-900 dark:text-slate-100 font-semibold">{`Date: ${label}`}</p>
           {payload.map((entry, index) => (
             <p
               key={index}
               style={{ color: entry.color }}
-              className="font-semibold"
+              className="font-semibold text-sm"
             >
               {`${
                 entry.dataKey === "income" ? "Income" : "Expense"
@@ -77,8 +74,8 @@ const Chart = ({ data }) => {
   };
 
   return (
-    <div className="w-full h-full bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-      <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white text-center">
+    <div className="w-full h-full surface-card p-6">
+      <h3 className="text-xl font-semibold mb-4 section-title text-center">
         Financial Overview
       </h3>
       <div className="w-full" style={{ height: "calc(100% - 60px)" }}>
@@ -87,18 +84,28 @@ const Chart = ({ data }) => {
             data={data}
             margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
           >
+            <defs>
+              <linearGradient id="incomeLine" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#6366F1" />
+                <stop offset="100%" stopColor="#22D3EE" />
+              </linearGradient>
+              <linearGradient id="expenseLine" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#F43F5E" />
+                <stop offset="100%" stopColor="#FB7185" />
+              </linearGradient>
+            </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke={theme === "dark" ? "#374151" : "#e5e7eb"}
-              opacity={0.7}
+              stroke={theme === "dark" ? "#334155" : "#CBD5E1"}
+              opacity={0.45}
             />
             <XAxis
               dataKey="name"
-              stroke={theme === "dark" ? "#9ca3af" : "#6b7280"}
+              stroke={theme === "dark" ? "#94A3B8" : "#64748B"}
               fontSize={12}
             />
             <YAxis
-              stroke={theme === "dark" ? "#9ca3af" : "#6b7280"}
+              stroke={theme === "dark" ? "#94A3B8" : "#64748B"}
               fontSize={12}
             />
             <Tooltip content={<CustomTooltip />} />
@@ -110,19 +117,19 @@ const Chart = ({ data }) => {
             <Line
               type="monotone"
               dataKey="income"
-              stroke="#10b981"
+              stroke="url(#incomeLine)"
               strokeWidth={3}
-              dot={{ fill: "#10b981", strokeWidth: 2, r: 6 }}
-              activeDot={{ r: 8, stroke: "#10b981", strokeWidth: 2 }}
+              dot={{ fill: "#6366F1", strokeWidth: 2, r: 5 }}
+              activeDot={{ r: 8, stroke: "#6366F1", strokeWidth: 2 }}
               name="Income"
             />
             <Line
               type="monotone"
               dataKey="expense"
-              stroke="#ef4444"
+              stroke="url(#expenseLine)"
               strokeWidth={3}
-              dot={{ fill: "#ef4444", strokeWidth: 2, r: 6 }}
-              activeDot={{ r: 8, stroke: "#ef4444", strokeWidth: 2 }}
+              dot={{ fill: "#F43F5E", strokeWidth: 2, r: 5 }}
+              activeDot={{ r: 8, stroke: "#F43F5E", strokeWidth: 2 }}
               name="Expense"
             />
           </LineChart>

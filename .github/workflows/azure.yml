@@ -1,0 +1,41 @@
+name: Deploy Backend to Azure Web App - Finmate
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # install inside backend
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_C07FB72CA94F4AA584DAF3BA670A03A3 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D6948E0DB63C4923A1D3C3B383417F82 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_934AFEAD1F484FD583CC796CF979C246 }}
+
+      # deploy FULL repo (so backend folder is included)
+      - name: Deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'Finmate'
+          package: .

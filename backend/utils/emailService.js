@@ -10,7 +10,9 @@ const hasValidEmailConfig = () => {
     "your_email_app_password_here",
   ]);
 
-  return !placeholderValues.has(EMAIL_USER) && !placeholderValues.has(EMAIL_PASS);
+  return (
+    !placeholderValues.has(EMAIL_USER) && !placeholderValues.has(EMAIL_PASS)
+  );
 };
 
 // Email transporter setup
@@ -234,8 +236,8 @@ const emailTemplates = {
             <ul style="margin: 0; padding-left: 20px;">
               <li>Number of transactions: ${data.transactionCount}</li>
               <li>Highest expense: ${data.currencySymbol}${
-      data.highestExpense
-    }</li>
+                data.highestExpense
+              }</li>
               <li>Most used category: ${data.topCategory}</li>
             </ul>
           </div>
@@ -329,7 +331,7 @@ export const sendBulkEmails = async (emailList) => {
     const result = await sendEmail(
       emailData.to,
       emailData.type,
-      emailData.data
+      emailData.data,
     );
     results.push({ ...emailData, result });
 
@@ -348,7 +350,7 @@ export const scheduleMonthlyEmails = async () => {
   // 2. Calculate their monthly summary
   // 3. Send summary emails
   console.log(
-    "Monthly email scheduling functionality - to be implemented with cron jobs"
+    "Monthly email scheduling functionality - to be implemented with cron jobs",
   );
 };
 

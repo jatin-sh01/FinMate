@@ -237,7 +237,8 @@ export const updateCurrentUserProfile = asyncHandler(async (req, res) => {
   // Send profile update email notification
   try {
     const updatedFields = [];
-    if (username && username !== previousUsername) updatedFields.push("Username");
+    if (username && username !== previousUsername)
+      updatedFields.push("Username");
     if (email && email !== previousEmail) updatedFields.push("Email Address");
 
     if (updatedFields.length > 0) {
@@ -251,14 +252,14 @@ export const updateCurrentUserProfile = asyncHandler(async (req, res) => {
       } else {
         console.error(
           `Failed to send profile update email to ${updatedUser.email}:`,
-          emailResult.error
+          emailResult.error,
         );
       }
     }
   } catch (error) {
     console.error(
       `Failed to send profile update email to ${updatedUser.email}:`,
-      error
+      error,
     );
     // Don't fail the update if email fails
   }
@@ -316,7 +317,7 @@ export const updateUserCurrency = asyncHandler(async (req, res) => {
     "User updated successfully:",
     updatedUser._id,
     "currency:",
-    updatedUser.currency
+    updatedUser.currency,
   );
 
   // Send currency update email notification
@@ -335,14 +336,14 @@ export const updateUserCurrency = asyncHandler(async (req, res) => {
       } else {
         console.error(
           `Failed to send currency update email to ${user.email}:`,
-          emailResult.error
+          emailResult.error,
         );
       }
     }
   } catch (error) {
     console.error(
       `Failed to send currency update email to ${user.email}:`,
-      error
+      error,
     );
     // Don't fail the update if email fails
   }
@@ -403,13 +404,13 @@ export const resetPassword = asyncHandler(async (req, res) => {
     } else {
       console.error(
         `Failed to send password reset email to ${user.email}:`,
-        emailResult.error
+        emailResult.error,
       );
     }
   } catch (error) {
     console.error(
       `Failed to send password reset email to ${user.email}:`,
-      error
+      error,
     );
     // Don't fail the password reset if email fails
   }
@@ -437,7 +438,7 @@ export const sendOTP = asyncHandler(async (req, res) => {
 
   if (lastResendTime && Date.now() - lastResendTime < cooldownDuration) {
     const retryAfter = Math.ceil(
-      (cooldownDuration - (Date.now() - lastResendTime)) / 1000
+      (cooldownDuration - (Date.now() - lastResendTime)) / 1000,
     );
 
     return res.status(429).json({
@@ -509,11 +510,14 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     } else {
       console.error(
         `Failed to send welcome email to ${updatedUser.email}:`,
-        emailResult.error
+        emailResult.error,
       );
     }
   } catch (error) {
-    console.error(`Failed to send welcome email to ${updatedUser.email}:`, error);
+    console.error(
+      `Failed to send welcome email to ${updatedUser.email}:`,
+      error,
+    );
   }
 
   res.status(200).json({
@@ -624,7 +628,7 @@ export const enable2FA = asyncHandler(async (req, res) => {
     } else {
       console.error(
         `Failed to send 2FA enabled email to ${user.email}:`,
-        emailResult.error
+        emailResult.error,
       );
     }
   } catch (error) {

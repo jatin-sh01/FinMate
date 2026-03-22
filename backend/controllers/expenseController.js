@@ -142,7 +142,7 @@ export const getExpenses = asyncHandler(async (req, res) => {
 
   const totalExpense = totalExpenses.reduce(
     (acc, expense) => acc + expense.amount,
-    0
+    0,
   );
 
   return res.status(200).json({
@@ -168,7 +168,7 @@ export const getAllExpenses = asyncHandler(async (req, res) => {
 
   const totalExpense = expenses.reduce(
     (acc, expense) => acc + expense.amount,
-    0
+    0,
   );
 
   return res.status(200).json({

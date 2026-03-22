@@ -13,7 +13,10 @@ const baseQuery = async (args, api, extraOptions) => {
   if (result?.error?.status === 401) {
     api.dispatch(resetCredentials());
 
-    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname !== "/login"
+    ) {
       window.location.href = "/login";
     }
   }

@@ -27,7 +27,7 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [countdown, setCountdown] = useState(
-    parseInt(localStorage.getItem("otpCountdown")) || 0
+    parseInt(localStorage.getItem("otpCountdown")) || 0,
   );
 
   const [otp, setOtp] = useState("");
@@ -70,7 +70,7 @@ const Register = () => {
 
       dispatch(updateLoader(60));
       toast.success(
-        res.message || "OTP sent successfully. Please check your email!"
+        res.message || "OTP sent successfully. Please check your email!",
       );
 
       setStep(2);
@@ -123,7 +123,7 @@ const Register = () => {
 
       dispatch(updateLoader(70));
       toast.success(
-        otpRes.message || "OTP sent successfully. Please check your email!"
+        otpRes.message || "OTP sent successfully. Please check your email!",
       );
       setCountdown(60);
       localStorage.setItem("otpCountdown", "60");

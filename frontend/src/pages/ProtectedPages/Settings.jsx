@@ -90,7 +90,7 @@ const Settings = () => {
       e.target.name,
       e.target.value,
       validationAccountInfoSchema,
-      setAccountInfoErrors
+      setAccountInfoErrors,
     );
   };
   const handleResetPasswordOnChange = (e) => {
@@ -102,7 +102,7 @@ const Settings = () => {
       e.target.name,
       e.target.value,
       validationResetPassSchema,
-      setResetPassErrors
+      setResetPassErrors,
     );
   };
 
@@ -273,7 +273,7 @@ const Settings = () => {
       toast.error(
         error?.data?.error ||
           error?.data?.message ||
-          "Failed to update currency"
+          "Failed to update currency",
       );
     } finally {
       dispatch(updateLoader(100));
@@ -281,10 +281,10 @@ const Settings = () => {
   };
 
   const hasAccountInfoErrors = Object.values(accountInfoErrors).some(
-    (error) => !!error
+    (error) => !!error,
   );
   const hasResetPassErrors = Object.values(resetPassErrors).some(
-    (error) => !!error
+    (error) => !!error,
   );
 
   useEffect(() => {

@@ -14,7 +14,9 @@ const hasValidEmailConfig = () => {
     "your_email_app_password_here",
   ]);
 
-  return !placeholderValues.has(EMAIL_USER) && !placeholderValues.has(EMAIL_PASS);
+  return (
+    !placeholderValues.has(EMAIL_USER) && !placeholderValues.has(EMAIL_PASS)
+  );
 };
 
 const sendOTPemail = async ({ _id, email }) => {
@@ -43,11 +45,11 @@ const sendOTPemail = async ({ _id, email }) => {
       lowerCaseAlphabets: false,
     });
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Your FinMate Account Verification OTP",
-    html: `
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your FinMate Account Verification OTP",
+      html: `
     <html>
       <head>
         <style>
@@ -97,7 +99,7 @@ const sendOTPemail = async ({ _id, email }) => {
       </body>
     </html>
   `,
-  };
+    };
 
     const salt = await bcrypt.genSalt(Number(process.env.ENCRYPTION_SALT));
     const hashedOTP = await bcrypt.hash(otp, salt);

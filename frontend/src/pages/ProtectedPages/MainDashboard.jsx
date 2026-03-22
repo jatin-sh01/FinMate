@@ -31,7 +31,8 @@ const DashboardPage = () => {
     error: expenseError,
   } = useGetAllExpensesQuery();
 
-  const isLoading = incomeLoading || expenseLoading || incomeFetching || expenseFetching;
+  const isLoading =
+    incomeLoading || expenseLoading || incomeFetching || expenseFetching;
 
   const totalIncome = incomeData?.totalIncome || 0;
   const totalExpense = expenseData?.totalExpense || 0;
@@ -83,7 +84,9 @@ const DashboardPage = () => {
 
     return Array.from(groupedByDate.entries())
       .map(([name, values]) => ({ name, ...values }))
-      .sort((a, b) => moment(a.name, "MM/DD/YYYY") - moment(b.name, "MM/DD/YYYY"));
+      .sort(
+        (a, b) => moment(a.name, "MM/DD/YYYY") - moment(b.name, "MM/DD/YYYY"),
+      );
   }, [incomeData?.incomes, expenseData?.expenses]);
 
   useEffect(() => {
@@ -111,7 +114,8 @@ const DashboardPage = () => {
             </span>
           </h2>
           <h3 className="section-subtitle text-sm md:text-base lg:text-lg text-center sm:text-left mt-2 max-w-3xl">
-            Track your net worth trajectory, monitor spending trends, and run your personal finances like a modern startup.
+            Track your net worth trajectory, monitor spending trends, and run
+            your personal finances like a modern startup.
           </h3>
         </motion.div>
 
@@ -124,7 +128,10 @@ const DashboardPage = () => {
                 label: "Total Balance",
                 value: totalBalance,
                 Icon: Balance,
-                tone: totalBalance >= 0 ? "from-indigo-600 to-violet-600" : "from-rose-600 to-pink-600",
+                tone:
+                  totalBalance >= 0
+                    ? "from-indigo-600 to-violet-600"
+                    : "from-rose-600 to-pink-600",
               },
               {
                 label: "Total Income",
@@ -149,7 +156,9 @@ const DashboardPage = () => {
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="text-indigo-100 text-sm font-medium mb-2">{card.label}</h4>
+                    <h4 className="text-indigo-100 text-sm font-medium mb-2">
+                      {card.label}
+                    </h4>
                     <h4 className="text-3xl font-bold leading-tight">
                       {currencySymbol}
                       <NumericFormat
@@ -188,7 +197,9 @@ const DashboardPage = () => {
             className="lg:col-span-2"
           >
             <div className="surface-card p-6 h-full">
-              <h5 className="text-2xl font-semibold section-title mb-6">Recent Transactions</h5>
+              <h5 className="text-2xl font-semibold section-title mb-6">
+                Recent Transactions
+              </h5>
               <div className="space-y-3 max-h-[330px] overflow-y-auto pr-1">
                 {isLoading ? (
                   <TransactionSkeleton />
@@ -209,7 +220,9 @@ const DashboardPage = () => {
                         />
                       </svg>
                     </div>
-                    <p className="section-subtitle">No recent transactions to display.</p>
+                    <p className="section-subtitle">
+                      No recent transactions to display.
+                    </p>
                     <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
                       Add a transaction to activate your activity stream.
                     </p>

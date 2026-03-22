@@ -28,7 +28,7 @@ const Login = () => {
   });
   const [errors, setErrors] = useState({});
   const [countdown, setCountdown] = useState(
-    parseInt(localStorage.getItem("otpCountdown")) || 0
+    parseInt(localStorage.getItem("otpCountdown")) || 0,
   );
 
   const [otp, setOtp] = useState("");
@@ -92,7 +92,7 @@ const Login = () => {
         await localStorage.setItem("otpCountdown", "60");
         setStep(2);
         toast.error(
-          error?.data?.error || "Please verify your email via to proceed."
+          error?.data?.error || "Please verify your email via to proceed.",
         );
         return;
       }
@@ -114,7 +114,7 @@ const Login = () => {
       dispatch(updateLoader(70));
       toast.success(
         otpRes.message ||
-          "Email is verified successfully. Please login to proceed!"
+          "Email is verified successfully. Please login to proceed!",
       );
       setStep(1);
     } catch (error) {
@@ -134,7 +134,7 @@ const Login = () => {
 
       dispatch(updateLoader(70));
       toast.success(
-        otpRes.message || "OTP sent successfully. Please check your email!"
+        otpRes.message || "OTP sent successfully. Please check your email!",
       );
     } catch (error) {
       console.log(error);

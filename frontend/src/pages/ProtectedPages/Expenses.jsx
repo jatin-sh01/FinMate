@@ -29,10 +29,10 @@ const Expenses = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const isRefetchDeleteModal = useSelector(
-    (state) => state.deleteTransactionModal.refetch
+    (state) => state.deleteTransactionModal.refetch,
   );
   const isRefetchViewAndUpdateModal = useSelector(
-    (state) => state.transactionViewAndUpdateModal.refetch
+    (state) => state.transactionViewAndUpdateModal.refetch,
   );
 
   const expenseCategories = [
@@ -70,7 +70,7 @@ const Expenses = () => {
           "clothing",
           "other",
         ],
-        "Invalid category selected."
+        "Invalid category selected.",
       ),
   });
 
@@ -161,13 +161,13 @@ const Expenses = () => {
         <h3 className="section-title text-3xl lg:text-5xl mt-2 text-center lg:text-left">
           Total Expense
           <span className="text-fuchsia-500 dark:text-fuchsia-400 ml-2">
-          $
-          <NumericFormat
-            className="ml-1 text-2xl lg:text-4xl"
-            value={totalExpense}
-            displayType={"text"}
-            thousandSeparator={true}
-          />
+            $
+            <NumericFormat
+              className="ml-1 text-2xl lg:text-4xl"
+              value={totalExpense}
+              displayType={"text"}
+              thousandSeparator={true}
+            />
           </span>
         </h3>
       </div>

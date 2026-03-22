@@ -141,7 +141,7 @@ export const getIncomes = asyncHandler(async (req, res) => {
 
   const totalIncome = totalExpenses.reduce(
     (acc, income) => acc + income.amount,
-    0
+    0,
   );
 
   return res.status(200).json({

@@ -27,7 +27,7 @@ router.post(
   "/trigger-monthly-summary",
   authenticateUser,
   blockInProduction,
-  triggerMonthlySummary
+  triggerMonthlySummary,
 );
 
 export default router;

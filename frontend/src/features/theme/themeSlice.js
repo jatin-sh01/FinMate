@@ -1,7 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const getSystemTheme = () => {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 };
 
 const getInitialTheme = () => {
@@ -9,7 +11,9 @@ const getInitialTheme = () => {
   if (savedTheme && (savedTheme === "light" || savedTheme === "dark")) {
     return savedTheme;
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 };
 
 const getInitialThemeMode = () => {
@@ -17,7 +21,9 @@ const getInitialThemeMode = () => {
   if (savedTheme && (savedTheme === "light" || savedTheme === "dark")) {
     return savedTheme;
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 };
 
 const initialState = {

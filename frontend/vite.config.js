@@ -7,7 +7,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   return {
-    plugins: [react(), mode === "production" && removeConsole()].filter(Boolean),
+    plugins: [react(), mode === "production" && removeConsole()].filter(
+      Boolean,
+    ),
     server: {
       host: true,
       strictPort: true,

@@ -23,15 +23,15 @@ const SideBar = () => {
   };
 
   return (
-    <nav className="hidden xl:flex flex-col w-[15%] h-full border-r-1 border-secondary dark:border-gray-700 py-3 bg-white dark:bg-gray-900 transition-colors">
-      <div className="px-4 flex items-center gap-x-2">
-        <img src={logo} alt="FinMate logo" className="w-[2.5rem]" />
-        <h5 className="text-xl font-outfit text-gray-800 dark:text-white">
-          Fin<span className="text-primary text-xl">Mate</span>
+    <nav className="hidden xl:flex flex-col w-[15%] h-full border-r border-slate-200/80 dark:border-slate-700/70 py-4 bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl transition-colors">
+      <div className="px-4 flex items-center gap-x-2 pb-4 border-b border-slate-200/70 dark:border-slate-700/70">
+        <img src={logo} alt="FinMate logo" className="w-11 h-11" />
+        <h5 className="text-xl font-outfit text-slate-800 dark:text-white tracking-tight">
+          Fin<span className="bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent text-xl">Mate</span>
         </h5>
       </div>
-      <menu className="w-full h-full flex flex-col px-3 mt-12">
-        <div className="space-y-6 flex flex-col">
+      <menu className="w-full h-full flex flex-col px-3 mt-8">
+        <div className="space-y-3 flex flex-col">
           <li
             className={`link ${
               isRouteActive("/dashboard") ? "activeLink" : ""
@@ -77,10 +77,7 @@ const SideBar = () => {
           <Settings className="size-[1.5rem]" />
           Settings
         </li>
-        <li
-          className="link mt-6 hover:bg-error hover:text-white"
-          onClick={() => dispatch(openModal())}
-        >
+        <li className="link mt-6 hover:bg-error hover:text-white" onClick={() => dispatch(openModal())}>
           <Logout className="size-[1.5rem]" />
           Logout
         </li>

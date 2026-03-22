@@ -34,13 +34,16 @@ const Menu = () => {
     <Dropdown onClose={() => setIsMenuOpen((prev) => !prev)}>
       <DropdownTrigger>
         <Button
-          color="primary"
+          className="premium-button"
           startContent={<MenuIcon />}
           onClick={toggleMenu}
           isIconOnly
         />
       </DropdownTrigger>
-      <DropdownMenu aria-label="Dropdown Navigations">
+      <DropdownMenu
+        aria-label="Dropdown Navigations"
+        className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl"
+      >
         <DropdownItem
           key="dashboard"
           color="primary"
@@ -55,7 +58,7 @@ const Menu = () => {
           key="incomes"
           color="success"
           startContent={<Income />}
-          description="View and Edit your incomes."
+          description="Track and manage your incomes"
           onPress={() => navigate("/dashboard/incomes")}
         >
           Incomes
@@ -65,17 +68,17 @@ const Menu = () => {
           key="expenses"
           color="danger"
           startContent={<Expense />}
-          description="View and Edit your expenses."
+          description="Track and manage your expenses"
           onPress={() => navigate("/dashboard/expenses")}
         >
           Expenses
         </DropdownItem>
 
         <DropdownItem
-          key="settingss"
+          key="settings"
           color="secondary"
           startContent={<Settings />}
-          description="View account Settings."
+          description="Profile, currency and security"
           onPress={() => navigate("/dashboard/settings")}
         >
           Settings

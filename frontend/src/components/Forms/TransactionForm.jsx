@@ -29,7 +29,7 @@ const TransactionForm = ({
   const currencySymbol = getCurrencySymbol(user?.currency);
 
   return (
-    <form className="flex flex-col justify-center items-center space-y-4 w-full lg:w-[45%]">
+    <form className="surface-card flex flex-col justify-center items-center space-y-4 w-full lg:w-[45%] p-5 md:p-6">
       <Input
         label="Title"
         placeholder="Enter the title"
@@ -40,6 +40,10 @@ const TransactionForm = ({
         errorMessage={errors?.title}
         startContent={<Title />}
         className="text-gray-500"
+        classNames={{
+          inputWrapper:
+            "premium-input rounded-xl shadow-sm group-data-[focus=true]:bg-white dark:group-data-[focus=true]:bg-slate-900",
+        }}
       />
       <Input
         type="number"
@@ -59,6 +63,10 @@ const TransactionForm = ({
           </div>
         }
         className="text-gray-500"
+        classNames={{
+          inputWrapper:
+            "premium-input rounded-xl shadow-sm group-data-[focus=true]:bg-white dark:group-data-[focus=true]:bg-slate-900",
+        }}
       />
       <div className="w-full grid grid-cols-2 gap-x-2">
         <Select
@@ -71,6 +79,10 @@ const TransactionForm = ({
           errorMessage={errors?.category}
           startContent={<Category />}
           className="text-gray-500"
+          classNames={{
+            trigger:
+              "premium-input rounded-xl shadow-sm group-data-[focus=true]:bg-white dark:group-data-[focus=true]:bg-slate-900",
+          }}
         >
           {categories.map((category) => (
             <SelectItem key={category.value} value={category.value}>
@@ -85,6 +97,10 @@ const TransactionForm = ({
           onChange={handleDateChange}
           isInvalid={!!errors.date}
           errorMessage={errors?.date}
+          classNames={{
+            inputWrapper:
+              "premium-input rounded-xl shadow-sm group-data-[focus=true]:bg-white dark:group-data-[focus=true]:bg-slate-900",
+          }}
         />
       </div>
       <Textarea
@@ -96,11 +112,15 @@ const TransactionForm = ({
         onChange={handleOnChange}
         isInvalid={!!errors.description}
         errorMessage={errors?.description}
+        classNames={{
+          inputWrapper:
+            "premium-input rounded-xl shadow-sm group-data-[focus=true]:bg-white dark:group-data-[focus=true]:bg-slate-900",
+        }}
       />
       <Button
         color={btnColor}
         startContent={<Add />}
-        className="text-white"
+        className="premium-button text-white rounded-xl"
         isLoading={isLoading}
         onClick={handleSubmit}
         isDisabled={

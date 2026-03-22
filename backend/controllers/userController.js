@@ -33,6 +33,21 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   const emailExists = await User.findOne({ email });
   if (emailExists) {
+    if (!emailExists.verified) {
+      const cooldownDuration = 60 * 1000;
+      const lastResendTime = await getLastResendTime(emailExists._id);
+      const remainingMs = lastResendTime
+        ? Math.max(0, cooldownDuration - (Date.now() - lastResendTime))
+        : 0;
+
+      return res.status(409).json({
+        error:
+          "Email is already registered but not verified. Please verify with OTP.",
+        requiresVerification: true,
+        retryAfter: Math.ceil(remainingMs / 1000),
+      });
+    }
+
     return res
       .status(400)
       .json({ error: "Email is already Registered. Please login instead!" });
@@ -49,18 +64,19 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   await newUser.save();
 
-  // Send welcome email
-  try {
-    await sendEmail(email, "welcome", { username });
-    console.log(`Welcome email sent to ${email}`);
-  } catch (error) {
-    console.error(`Failed to send welcome email to ${email}:`, error);
-    // Don't fail registration if email fails
+  await OTP.deleteMany({ userID: newUser._id });
+
+  const otpResult = await sendOTPemail({ _id: newUser._id, email });
+  if (!otpResult.success) {
+    await User.findByIdAndDelete(newUser._id);
+    return res.status(503).json({ error: otpResult.error });
   }
 
-  await generateCookie(res, newUser._id);
+  await updateLastResendTime(newUser._id);
+
   res.status(200).json({
-    message: "User registered successfully. Please verify your email!",
+    message:
+      "User registered successfully. OTP sent to your email. Please verify your account before login.",
     user: {
       _id: newUser._id,
       username: newUser.username,
@@ -135,11 +151,13 @@ export const loginUser = asyncHandler(async (req, res) => {
 
 // Controller function to logout a user
 export const logoutCurrentUser = asyncHandler(async (req, res) => {
+  const isProduction = process.env.NODE_ENV === "production";
+
   // Clear the session cookie safely regardless of presence
   res.clearCookie("session", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "None", // Required for cross-site cookies (e.g. Vercel frontend)
+    secure: isProduction,
+    sameSite: isProduction ? "None" : "Lax",
   });
 
   return res.status(200).json({ message: "Logged Out Successfully!" });
@@ -176,6 +194,8 @@ export const updateCurrentUserProfile = asyncHandler(async (req, res) => {
   }
 
   const { username, email } = req.body;
+  const previousUsername = user.username;
+  const previousEmail = user.email;
 
   if (!username && !email) {
     return res.status(400).json({
@@ -217,15 +237,23 @@ export const updateCurrentUserProfile = asyncHandler(async (req, res) => {
   // Send profile update email notification
   try {
     const updatedFields = [];
-    if (username && username !== user.username) updatedFields.push("Username");
-    if (email && email !== user.email) updatedFields.push("Email Address");
+    if (username && username !== previousUsername) updatedFields.push("Username");
+    if (email && email !== previousEmail) updatedFields.push("Email Address");
 
     if (updatedFields.length > 0) {
-      await sendEmail(updatedUser.email, "profileUpdate", {
+      const emailResult = await sendEmail(updatedUser.email, "profileUpdate", {
         username: updatedUser.username,
         updatedFields,
       });
-      console.log(`Profile update email sent to ${updatedUser.email}`);
+
+      if (emailResult.success) {
+        console.log(`Profile update email sent to ${updatedUser.email}`);
+      } else {
+        console.error(
+          `Failed to send profile update email to ${updatedUser.email}:`,
+          emailResult.error
+        );
+      }
     }
   } catch (error) {
     console.error(
@@ -295,13 +323,21 @@ export const updateUserCurrency = asyncHandler(async (req, res) => {
   try {
     if (oldCurrency !== finalCurrency) {
       const currencySymbol = currencyConfig[finalCurrency]?.symbol || "$";
-      await sendEmail(user.email, "currencyUpdate", {
+      const emailResult = await sendEmail(user.email, "currencyUpdate", {
         username: user.username,
         oldCurrency,
         newCurrency: finalCurrency,
         currencySymbol,
       });
-      console.log(`Currency update email sent to ${user.email}`);
+
+      if (emailResult.success) {
+        console.log(`Currency update email sent to ${user.email}`);
+      } else {
+        console.error(
+          `Failed to send currency update email to ${user.email}:`,
+          emailResult.error
+        );
+      }
     }
   } catch (error) {
     console.error(
@@ -358,8 +394,18 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   // Send password reset notification email
   try {
-    await sendEmail(user.email, "passwordReset", { username: user.username });
-    console.log(`Password reset email sent to ${user.email}`);
+    const emailResult = await sendEmail(user.email, "passwordReset", {
+      username: user.username,
+    });
+
+    if (emailResult.success) {
+      console.log(`Password reset email sent to ${user.email}`);
+    } else {
+      console.error(
+        `Failed to send password reset email to ${user.email}:`,
+        emailResult.error
+      );
+    }
   } catch (error) {
     console.error(
       `Failed to send password reset email to ${user.email}:`,
@@ -380,20 +426,39 @@ export const sendOTP = asyncHandler(async (req, res) => {
     return res.status(404).json({ error: "Email is not registered!" });
   }
 
+  if (existingUser.verified) {
+    return res.status(400).json({ error: "Email is already verified!" });
+  }
+
   const userID = existingUser._id;
 
   const cooldownDuration = 60 * 1000; // 1 minute in milliseconds
   const lastResendTime = await getLastResendTime(userID);
 
   if (lastResendTime && Date.now() - lastResendTime < cooldownDuration) {
+    const retryAfter = Math.ceil(
+      (cooldownDuration - (Date.now() - lastResendTime)) / 1000
+    );
+
     return res.status(429).json({
       error: "Please wait for atleast 1 minute before requesting another OTP.",
+      retryAfter,
     });
   }
 
   await OTP.deleteMany({ userID });
-  await sendOTPemail({ _id: userID, email }, res);
+
+  const otpResult = await sendOTPemail({ _id: userID, email });
+  if (!otpResult.success) {
+    return res.status(503).json({ error: otpResult.error });
+  }
+
   await updateLastResendTime(userID);
+
+  return res.status(200).json({
+    message: "OTP sent successfully. Please check your inbox!",
+    data: otpResult.data,
+  });
 });
 
 // Controller function to verify OTP
@@ -433,6 +498,23 @@ export const verifyOTP = asyncHandler(async (req, res) => {
   await OTP.deleteMany({ userID });
 
   const updatedUser = await User.findById(userID);
+
+  try {
+    const emailResult = await sendEmail(updatedUser.email, "welcome", {
+      username: updatedUser.username,
+    });
+
+    if (emailResult.success) {
+      console.log(`Welcome email sent to ${updatedUser.email}`);
+    } else {
+      console.error(
+        `Failed to send welcome email to ${updatedUser.email}:`,
+        emailResult.error
+      );
+    }
+  } catch (error) {
+    console.error(`Failed to send welcome email to ${updatedUser.email}:`, error);
+  }
 
   res.status(200).json({
     user: {
@@ -533,10 +615,18 @@ export const enable2FA = asyncHandler(async (req, res) => {
 
   // Send 2FA enabled email notification
   try {
-    await sendEmail(user.email, "twoFactorEnabled", {
+    const emailResult = await sendEmail(user.email, "twoFactorEnabled", {
       username: user.username,
     });
-    console.log(`2FA enabled email sent to ${user.email}`);
+
+    if (emailResult.success) {
+      console.log(`2FA enabled email sent to ${user.email}`);
+    } else {
+      console.error(
+        `Failed to send 2FA enabled email to ${user.email}:`,
+        emailResult.error
+      );
+    }
   } catch (error) {
     console.error(`Failed to send 2FA enabled email to ${user.email}:`, error);
     // Don't fail the 2FA enable if email fails

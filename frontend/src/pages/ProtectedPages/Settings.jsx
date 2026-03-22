@@ -52,7 +52,6 @@ const Settings = () => {
     email: "",
   });
 
-  // 2FA States
   const [twoFactorStatus, setTwoFactorStatus] = useState({
     twoFactorEnabled: false,
     hasBackupCodes: false,
@@ -65,7 +64,6 @@ const Settings = () => {
   } = useDisclosure();
   const [is2FALoading, setIs2FALoading] = useState(false);
 
-  // Currency State
   const [userCurrency, setUserCurrency] = useState("USD");
 
   const validationAccountInfoSchema = object({
@@ -187,7 +185,6 @@ const Settings = () => {
     }
   };
 
-  // Fetch 2FA status
   const fetch2FAStatus = async () => {
     try {
       const response = await fetch("/api/v1/users/2fa/status", {
@@ -203,12 +200,10 @@ const Settings = () => {
     }
   };
 
-  // Handle 2FA toggle
   const handle2FAToggle = async (enabled) => {
     if (enabled) {
       on2FASetupOpen();
     } else {
-      // Show disable 2FA confirmation
       const password = prompt("Please enter your password to disable 2FA:");
       const token = prompt("Please enter your current 2FA code:");
 
@@ -265,9 +260,7 @@ const Settings = () => {
       const response = await updateCurrency(requestData).unwrap();
       console.log("Currency update response:", response);
 
-      // Backend returns { message, user } on success
       if (response.message && response.user) {
-        // Update Redux store with new user data
         dispatch(setCredentials({ user: response.user }));
         setUserCurrency(currency.code);
         toast.success(response.message);
@@ -300,20 +293,19 @@ const Settings = () => {
   }, [data]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-2 sm:p-4 md:p-6">
+    <div className="min-h-screen dashboard-shell p-2 sm:p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header Section */}
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="section-title text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent mb-2">
             Account Settings
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base md:text-lg px-2">
+          <p className="section-subtitle text-sm sm:text-base md:text-lg px-2">
             Customize your account preferences, security settings, and
             personalization options
           </p>
         </div>
 
-        <Card className="w-full shadow-xl sm:shadow-2xl backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 border-0">
+        <Card className="w-full surface-card border-0">
           {userDetailsLoading ? (
             <CardBody className="flex justify-center items-center h-64 sm:h-96">
               <div className="text-center space-y-4">
@@ -334,11 +326,12 @@ const Settings = () => {
                 className="mb-4 sm:mb-6"
                 classNames={{
                   tabList:
-                    "gap-1 sm:gap-2 md:gap-6 w-full relative rounded-lg bg-gray-100 dark:bg-gray-800 p-1",
-                  cursor: "w-full bg-white dark:bg-gray-700 shadow-lg",
+                    "gap-1 sm:gap-2 md:gap-6 w-full relative rounded-xl bg-slate-100/90 dark:bg-slate-800/90 p-1",
+                  cursor:
+                    "w-full bg-white dark:bg-slate-700 shadow-lg border border-slate-200/70 dark:border-slate-600/70",
                   tab: "max-w-fit px-2 sm:px-4 py-2 sm:py-3 h-10 sm:h-12",
                   tabContent:
-                    "group-data-[selected=true]:text-blue-600 dark:group-data-[selected=true]:text-blue-400 font-medium text-xs sm:text-sm",
+                    "group-data-[selected=true]:text-indigo-600 dark:group-data-[selected=true]:text-indigo-300 font-medium text-xs sm:text-sm",
                 }}
               >
                 <Tab

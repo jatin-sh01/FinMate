@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { object, string } from "yup";
 import { toast } from "react-toastify";
 
@@ -30,7 +31,7 @@ const Register = () => {
   );
 
   const [otp, setOtp] = useState("");
-  const [step, setStep] = useState(1); // 1: registration, 2: OTP verification
+  const [step, setStep] = useState(1);
 
   const validationSchema = object({
     username: string()
@@ -63,17 +64,29 @@ const Register = () => {
 
       dispatch(updateLoader(40));
       const res = await register(formData).unwrap();
-      await dispatch(setCredentials(res.user));
-      await sendOtp({ email });
+
       setCountdown(60);
-      await localStorage.setItem("otpCountdown", "60");
+      localStorage.setItem("otpCountdown", "60");
 
       dispatch(updateLoader(60));
-      toast.success("OTP sent successfully. Please check your email!");
+      toast.success(
+        res.message || "OTP sent successfully. Please check your email!"
+      );
 
       setStep(2);
     } catch (error) {
       console.log(error);
+
+      if (error?.status === 409 && error?.data?.requiresVerification) {
+        setStep(2);
+
+        const retryAfter = Number(error?.data?.retryAfter || 0);
+        if (retryAfter > 0) {
+          setCountdown(retryAfter);
+          localStorage.setItem("otpCountdown", retryAfter.toString());
+        }
+      }
+
       toast.error(error?.data?.error || "Unexpected Internal Server Error!");
     } finally {
       dispatch(updateLoader(100));
@@ -136,52 +149,59 @@ const Register = () => {
   }, [countdown]);
 
   return (
-    <section className="w-full h-[90vh] px-6 sm:px-8 md:px-12 flex justify-center items-center">
-      <UserAuthForm
-        title={step === 1 ? "Register Now" : "Verify Your Email"}
-        imageTitle="Easy to Use."
-        imageSrc={registerImg}
-        alt="registration image"
-        form={
-          step === 1 ? (
-            <>
-              <UsernameInput
-                value={username}
-                onChange={handleOnChange}
-                errors={errors}
+    <section className="w-full min-h-screen px-4 sm:px-8 md:px-12 py-10 sm:py-12 flex justify-center items-center dashboard-shell">
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="w-full flex justify-center"
+      >
+        <UserAuthForm
+          title={step === 1 ? "Create Account" : "Verify Your Email"}
+          imageTitle="Easy to use"
+          imageSrc={registerImg}
+          alt="registration image"
+          form={
+            step === 1 ? (
+              <>
+                <UsernameInput
+                  value={username}
+                  onChange={handleOnChange}
+                  errors={errors}
+                />
+                <EmailInput
+                  value={email}
+                  onChange={handleOnChange}
+                  errors={errors}
+                />
+                <PasswordInput
+                  value={password}
+                  onChange={handleOnChange}
+                  errors={errors}
+                />
+                <SubmitButton
+                  isLoading={registerLoading}
+                  handleSubmit={handleSubmit}
+                  isDisabled={!email || !password || !username || hasErrors}
+                />
+              </>
+            ) : (
+              <OtpForm
+                otp={otp}
+                setOtp={setOtp}
+                email={email}
+                handleOtpSubmit={handleOtpSubmit}
+                resendOtp={resendOtp}
+                countdown={countdown}
+                verifyOtpLoading={verifyOtpLoading}
               />
-              <EmailInput
-                value={email}
-                onChange={handleOnChange}
-                errors={errors}
-              />
-              <PasswordInput
-                value={password}
-                onChange={handleOnChange}
-                errors={errors}
-              />
-              <SubmitButton
-                isLoading={registerLoading}
-                handleSubmit={handleSubmit}
-                isDisabled={!email || !password || !username || hasErrors}
-              />
-            </>
-          ) : (
-            <OtpForm
-              otp={otp}
-              setOtp={setOtp}
-              email={email}
-              handleOtpSubmit={handleOtpSubmit}
-              resendOtp={resendOtp}
-              countdown={countdown}
-              verifyOtpLoading={verifyOtpLoading}
-            />
-          )
-        }
-        footer={step === 1 && "Already have an account?"}
-        footerLink={step === 1 && "Login"}
-        footerLinkPath={step === 1 && "/login"}
-      />
+            )
+          }
+          footer={step === 1 && "Already have an account?"}
+          footerLink={step === 1 && "Login"}
+          footerLinkPath={step === 1 && "/login"}
+        />
+      </motion.div>
     </section>
   );
 };

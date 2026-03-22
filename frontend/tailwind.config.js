@@ -10,8 +10,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "theme('colors.blue.600')",
-        secondary: "theme('colors.gray.300')",
+        primary: "theme('colors.indigo.600')",
+        secondary: "theme('colors.slate.300')",
+        accent: "theme('colors.violet.500')",
         error: "#E9094C",
       },
       fontFamily: {

@@ -2,24 +2,46 @@ import bcrypt from "bcryptjs";
 import otpGenerator from "otp-generator";
 import nodemailer from "nodemailer";
 
-import asyncHandler from "../../middlewares/asyncHandler.js";
 import OTP from "../../models/otpModel.js";
 
-const sendOTPemail = asyncHandler(async ({ _id, email }, res) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-  const otp = await otpGenerator.generate(4, {
-    upperCaseAlphabets: false,
-    specialChars: false,
-    lowerCaseAlphabets: false,
-  });
+const hasValidEmailConfig = () => {
+  const { EMAIL_USER, EMAIL_PASS } = process.env;
+
+  if (!EMAIL_USER || !EMAIL_PASS) return false;
+
+  const placeholderValues = new Set([
+    "your_email@example.com",
+    "your_email_app_password_here",
+  ]);
+
+  return !placeholderValues.has(EMAIL_USER) && !placeholderValues.has(EMAIL_PASS);
+};
+
+const sendOTPemail = async ({ _id, email }) => {
+  try {
+    if (!hasValidEmailConfig()) {
+      return {
+        success: false,
+        error:
+          "Email service is not configured. Set EMAIL_USER and EMAIL_PASS in backend .env.",
+      };
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const otp = await otpGenerator.generate(4, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+    });
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -77,25 +99,33 @@ const sendOTPemail = asyncHandler(async ({ _id, email }, res) => {
   `,
   };
 
-  const salt = await bcrypt.genSalt(Number(process.env.ENCRYPTION_SALT));
-  const hashedOTP = await bcrypt.hash(otp, salt);
+    const salt = await bcrypt.genSalt(Number(process.env.ENCRYPTION_SALT));
+    const hashedOTP = await bcrypt.hash(otp, salt);
 
-  const newOTP = new OTP({
-    userID: _id,
-    otp: hashedOTP,
-    expiresAt: Date.now() + 1 * 60 * 1000,
-  });
-
-  await newOTP.save();
-  await transporter.sendMail(mailOptions);
-
-  return res.json({
-    message: "OTP sent successfully. Please check your inbox!",
-    data: {
+    const newOTP = new OTP({
       userID: _id,
-      email,
-    },
-  });
-});
+      otp: hashedOTP,
+      expiresAt: Date.now() + 1 * 60 * 1000,
+    });
+
+    await newOTP.save();
+    await transporter.sendMail(mailOptions);
+
+    return {
+      success: true,
+      data: {
+        userID: _id,
+        email,
+      },
+    };
+  } catch (error) {
+    const errorMessage =
+      error?.code === "EAUTH"
+        ? "Email authentication failed. Use a valid Gmail App Password in EMAIL_PASS."
+        : "Failed to send OTP email. Please try again.";
+
+    return { success: false, error: errorMessage };
+  }
+};
 
 export default sendOTPemail;

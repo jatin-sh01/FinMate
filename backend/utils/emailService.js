@@ -1,5 +1,18 @@
 import nodemailer from "nodemailer";
 
+const hasValidEmailConfig = () => {
+  const { EMAIL_USER, EMAIL_PASS } = process.env;
+
+  if (!EMAIL_USER || !EMAIL_PASS) return false;
+
+  const placeholderValues = new Set([
+    "your_email@example.com",
+    "your_email_app_password_here",
+  ]);
+
+  return !placeholderValues.has(EMAIL_USER) && !placeholderValues.has(EMAIL_PASS);
+};
+
 // Email transporter setup
 const createTransporter = () => {
   return nodemailer.createTransport({
@@ -267,6 +280,14 @@ const emailTemplates = {
 // Send email function
 export const sendEmail = async (to, emailType, data = {}) => {
   try {
+    if (!hasValidEmailConfig()) {
+      return {
+        success: false,
+        error:
+          "Email service is not configured. Set EMAIL_USER and EMAIL_PASS in backend .env.",
+      };
+    }
+
     const transporter = createTransporter();
     const template = emailTemplates[emailType];
 
@@ -290,8 +311,13 @@ export const sendEmail = async (to, emailType, data = {}) => {
     console.log(`Email sent successfully to ${to}: ${emailContent.subject}`);
     return { success: true, messageId: result.messageId };
   } catch (error) {
+    const errorMessage =
+      error?.code === "EAUTH"
+        ? "Email authentication failed. Use a valid Gmail App Password in EMAIL_PASS."
+        : error.message;
+
     console.error("Error sending email:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorMessage };
   }
 };
 

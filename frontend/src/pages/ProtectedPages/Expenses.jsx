@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { object, string, number, date } from "yup";
+import { object, string, number } from "yup";
 import { toast } from "react-toastify";
 import moment from "moment";
 import { parseDate } from "@internationalized/date";
@@ -108,21 +108,6 @@ const Expenses = () => {
   });
   const dispatch = useDispatch();
 
-  const fetchData = async () => {
-    try {
-      await refetch();
-      if (data?.expenses) {
-        setTotalExpense(data.totalExpense);
-        setTotalPages(data.pagination.totalPages);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(
-        error?.data?.error ||
-          "An unexpected error occurred while fetching data!"
-      );
-    }
-  };
   const handleSubmit = async (e) => {
     try {
       e.preventDefault();
@@ -153,17 +138,29 @@ const Expenses = () => {
   };
 
   useEffect(() => {
-    fetchData();
-    if (isRefetchDeleteModal || isRefetchViewAndUpdateModal) fetchData();
-  }, [data, isRefetchDeleteModal, isRefetchViewAndUpdateModal]);
+    if (data?.expenses) {
+      setTotalExpense(data.totalExpense || 0);
+      setTotalPages(data.pagination?.totalPages || 1);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (isRefetchDeleteModal || isRefetchViewAndUpdateModal) {
+      refetch();
+    }
+  }, [isRefetchDeleteModal, isRefetchViewAndUpdateModal, refetch]);
 
   const hasErrors = Object.values(errors).some((error) => !!error);
 
   return (
     <>
-      <h3 className="text-3xl lg:text-5xl mt-4 text-center">
-        Total Expense -{" "}
-        <span className="text-red-400">
+      <div className="px-6 md:px-8 lg:px-12 pt-4">
+        <p className="text-xs md:text-sm uppercase tracking-[0.2em] text-indigo-500 dark:text-indigo-300 font-semibold text-center lg:text-left">
+          Expense Analytics
+        </p>
+        <h3 className="section-title text-3xl lg:text-5xl mt-2 text-center lg:text-left">
+          Total Expense
+          <span className="text-fuchsia-500 dark:text-fuchsia-400 ml-2">
           $
           <NumericFormat
             className="ml-1 text-2xl lg:text-4xl"
@@ -171,9 +168,10 @@ const Expenses = () => {
             displayType={"text"}
             thousandSeparator={true}
           />
-        </span>
-      </h3>
-      <section className="w-full h-full flex flex-col lg:flex-row px-6 md:px-8 lg:px-12 pt-6 space-y-8 lg:space-y-0 lg:space-x-8">
+          </span>
+        </h3>
+      </div>
+      <section className="w-full h-full flex flex-col lg:flex-row px-6 md:px-8 lg:px-12 pt-6 space-y-8 lg:space-y-0 lg:space-x-8 pb-8">
         <TransactionForm
           button="Add Expense"
           categories={expenseCategories}

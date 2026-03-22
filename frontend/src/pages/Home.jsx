@@ -24,12 +24,17 @@ const Home = () => {
     <main
       className={`${
         userIsVerified ? "hidden" : ""
-      } w-full h-full bg-white dark:bg-gray-900 transition-colors`}
+      } w-full min-h-screen dashboard-shell transition-colors relative overflow-hidden`}
     >
       <NavBar />
-      <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-4 pt-12 sm:pt-0 gap-y-12 flex flex-col sm:block h-[90vh] sm:h-full transition-all duration-300">
-        <div className="w-full sm:h-[65vh] flex flex-col justify-center items-center order-2 sm:order-1">
-          <h2 className="text-4xl md:text-5xl xl:text-7xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent text-center">
+      <div className="hero-orb hero-orb-left"></div>
+      <div className="hero-orb hero-orb-right"></div>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-10 pb-8 pt-10 sm:pt-14 gap-y-12 flex flex-col transition-all duration-300">
+        <div className="w-full min-h-[48vh] sm:min-h-[56vh] flex flex-col justify-center items-center text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 dark:border-indigo-500/40 bg-white/75 dark:bg-slate-900/75 px-4 py-1.5 text-xs sm:text-sm font-semibold text-indigo-700 dark:text-indigo-200 shadow-sm mb-5">
+            Smart money workflow, simplified
+          </span>
+          <h2 className="text-4xl md:text-5xl xl:text-7xl font-bold bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 bg-clip-text text-transparent leading-tight">
             Manage your{" "}
             <TypeAnimation
               sequence={[
@@ -49,7 +54,7 @@ const Home = () => {
             />{" "}
             smartly
           </h2>
-          <p className="text-sm sm:text-base lg:text-lg my-8 text-balance text-center w-[90%] xl:w-[60%] text-gray-700 dark:text-gray-300">
+          <p className="text-sm sm:text-base lg:text-lg my-7 text-balance w-[94%] xl:w-[62%] text-slate-600 dark:text-slate-300 leading-relaxed">
             Welcome to{" "}
             <span className="text-primary font-calSans">FinMate</span> - your
             comprehensive financial management platform. Take control of your
@@ -57,43 +62,44 @@ const Home = () => {
             support, and detailed financial insights that help you achieve your
             goals.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
             <Button
-              color="primary"
-              className="text-sm sm:text-base lg:text-lg lg:w-[14rem] px-6 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-              radius="sm"
+              className="premium-button text-sm sm:text-base lg:text-lg w-[13.5rem] sm:w-[14rem] px-6 py-6"
+              radius="full"
               startContent={<StartNow />}
               onPress={() => navigate("/register")}
             >
               Start using Now!
             </Button>
-            <ThreeDots
-              className="text-primary size-[2.5rem] cursor-pointer hover:scale-110 transition-transform duration-200"
-              onClick={() => navigate("/login")}
-            />
+            <Button
+              variant="light"
+              radius="full"
+              className="border border-indigo-200/80 dark:border-indigo-500/50 bg-white/70 dark:bg-slate-900/65 text-slate-700 dark:text-slate-200 px-5"
+              endContent={<ThreeDots className="size-5" />}
+              onPress={() => navigate("/login")}
+            >
+              Explore Demo
+            </Button>
           </div>
         </div>
-        <div className="flex justify-center items-center order-1 sm:order-2">
-          {/* Light theme image */}
+        <div className="flex justify-center items-center">
           <img
             src={dashboardLight}
             alt="FinMate Dashboard - Light Theme"
-            className="w-[90%] xl:w-[80%] mx-auto rounded-xl border-3 border-gray-300 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02] block dark:hidden"
+            className="w-[96%] xl:w-[86%] mx-auto rounded-2xl border border-slate-300/80 shadow-2xl shadow-indigo-500/20 transition-all duration-300 transform hover:scale-[1.01] block dark:hidden"
           />
-          {/* Dark theme image */}
           <img
             src={dashboardDark}
             alt="FinMate Dashboard - Dark Theme"
-            className="w-[90%] xl:w-[80%] mx-auto rounded-xl border-3 border-gray-600 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02] hidden dark:block"
+            className="w-[96%] xl:w-[86%] mx-auto rounded-2xl border border-slate-700 shadow-2xl shadow-indigo-900/35 transition-all duration-300 transform hover:scale-[1.01] hidden dark:block"
           />
         </div>
-        <div className="hidden sm:flex justify-center items-center mt-4">
+        <div className="hidden sm:flex justify-center items-center mt-5">
           <Link to="https://github.com/jatin-sh01/FinMate-" target="_blank">
             <Button
-              color="primary"
-              radius="sm"
-              variant="bordered"
-              className="hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
+              radius="full"
+              variant="light"
+              className="border border-indigo-300/70 dark:border-indigo-500/60 bg-white/70 dark:bg-slate-900/65 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors"
             >
               Know More About the Project
             </Button>

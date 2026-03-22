@@ -32,7 +32,10 @@ export const addExpense = asyncHandler(async (req, res) => {
 
 // Controller function to update an expense
 export const updateExpense = asyncHandler(async (req, res) => {
-  const expense = await Expense.findById(req.params.id);
+  const expense = await Expense.findOne({
+    _id: req.params.id,
+    user: req.user._id,
+  });
 
   if (!expense) {
     return res.status(404).json({ error: "Expense not found!" });
@@ -50,7 +53,7 @@ export const updateExpense = asyncHandler(async (req, res) => {
     amount === expense.amount &&
     category === expense.category &&
     description === expense.description &&
-    date === expense.date
+    (!date || new Date(date).getTime() === new Date(expense.date).getTime())
   ) {
     return res.status(400).json({ error: "No changes detected!" });
   }

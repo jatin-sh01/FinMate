@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
 import Chart from "../../components/Chart";
 import { useSelector } from "react-redux";
 import moment from "moment";
@@ -8,189 +9,194 @@ import { NumericFormat } from "react-number-format";
 import { Income, Expense, Balance } from "../../utils/Icons";
 import { useGetAllIncomesQuery } from "../../features/api/apiSlices/incomeApiSlice";
 import { useGetAllExpensesQuery } from "../../features/api/apiSlices/expenseApiSlice";
+import { getCurrencySymbol } from "../../utils/currencyFormatter";
 import {
-  getCurrencySymbol,
-  formatAmountForDisplay,
-} from "../../utils/currencyFormatter";
+  DashboardCardSkeleton,
+  TransactionSkeleton,
+} from "../../components/Skeletons";
 
 const DashboardPage = () => {
   const user = useSelector((state) => state.auth.user);
   const currencySymbol = getCurrencySymbol(user?.currency);
+  const {
+    data: incomeData,
+    isLoading: incomeLoading,
+    isFetching: incomeFetching,
+    error: incomeError,
+  } = useGetAllIncomesQuery();
+  const {
+    data: expenseData,
+    isLoading: expenseLoading,
+    isFetching: expenseFetching,
+    error: expenseError,
+  } = useGetAllExpensesQuery();
 
-  const [totalBalance, setTotalBalance] = useState(0);
-  const [totalIncome, setTotalIncome] = useState(0);
-  const [totalExpense, setTotalExpense] = useState(0);
-  const [recentHistory, setRecentHistory] = useState([]);
+  const isLoading = incomeLoading || expenseLoading || incomeFetching || expenseFetching;
 
-  const { data: incomeData, refetch: refetchIncomes } = useGetAllIncomesQuery();
-  const { data: expenseData, refetch: refetchExpenses } =
-    useGetAllExpensesQuery();
+  const totalIncome = incomeData?.totalIncome || 0;
+  const totalExpense = expenseData?.totalExpense || 0;
+  const totalBalance = totalIncome - totalExpense;
 
-  const fetchData = async () => {
-    try {
-      await refetchIncomes();
-      await refetchExpenses();
-      if (incomeData) {
-        setTotalIncome(incomeData?.totalIncome);
-      }
-      if (expenseData) {
-        setTotalExpense(expenseData?.totalExpense);
-      }
-      const totalBalance =
-        (incomeData?.totalIncome || 0) - (expenseData?.totalExpense || 0);
-      setTotalBalance(totalBalance);
-
-      const recentHistory = [
-        ...(incomeData?.incomes || []).map((transaction) => ({
-          ...transaction,
-          type: "income",
-        })),
-        ...(expenseData?.expenses || []).map((transaction) => ({
-          ...transaction,
-          type: "expense",
-        })),
-      ];
-      recentHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-      const recentTransactions = recentHistory.slice(0, 3);
-
-      setRecentHistory(recentTransactions);
-    } catch (error) {
-      console.log(error);
-      toast.error(error?.data?.error || "Unexpected Internal Server Error!");
-    }
-  };
-
-  const incomeDates =
-    incomeData?.incomes.map((income) =>
-      moment(income.date).format("MM/DD/YYYY")
-    ) || [];
-  const incomeAmounts =
-    incomeData?.incomes.map((income) => income.amount) || [];
-  const expenseAmounts =
-    expenseData?.expenses.map((expense) => expense.amount) || [];
-
-  let data = [];
-
-  if (incomeAmounts.length === 0 || expenseAmounts.length === 0) {
-    data = [
-      {
-        name: "Data unavailable. Please add your incomes/expenses to populate this display.",
-        income: 0,
-        expense: 0,
-      },
+  const recentHistory = useMemo(() => {
+    const transactions = [
+      ...(incomeData?.incomes || []).map((transaction) => ({
+        ...transaction,
+        type: "income",
+      })),
+      ...(expenseData?.expenses || []).map((transaction) => ({
+        ...transaction,
+        type: "expense",
+      })),
     ];
-  } else {
-    data = incomeDates.map((date, index) => ({
-      name: date,
-      income: incomeAmounts[index] || 0,
-      expense: expenseAmounts[index] || 0,
-    }));
-  }
+
+    transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return transactions.slice(0, 5);
+  }, [incomeData?.incomes, expenseData?.expenses]);
+
+  const chartData = useMemo(() => {
+    const incomes = incomeData?.incomes || [];
+    const expenses = expenseData?.expenses || [];
+
+    if (!incomes.length && !expenses.length) {
+      return [];
+    }
+
+    const groupedByDate = new Map();
+
+    incomes.forEach((item) => {
+      const key = moment(item.date).format("MM/DD/YYYY");
+      const existing = groupedByDate.get(key) || { income: 0, expense: 0 };
+      groupedByDate.set(key, {
+        income: existing.income + Number(item.amount || 0),
+        expense: existing.expense,
+      });
+    });
+
+    expenses.forEach((item) => {
+      const key = moment(item.date).format("MM/DD/YYYY");
+      const existing = groupedByDate.get(key) || { income: 0, expense: 0 };
+      groupedByDate.set(key, {
+        income: existing.income,
+        expense: existing.expense + Number(item.amount || 0),
+      });
+    });
+
+    return Array.from(groupedByDate.entries())
+      .map(([name, values]) => ({ name, ...values }))
+      .sort((a, b) => moment(a.name, "MM/DD/YYYY") - moment(b.name, "MM/DD/YYYY"));
+  }, [incomeData?.incomes, expenseData?.expenses]);
 
   useEffect(() => {
-    fetchData();
-  }, [incomeData, expenseData]);
+    if (incomeError || expenseError) {
+      toast.error("Failed to load dashboard data.");
+    }
+  }, [incomeError, expenseError]);
 
   return (
-    <section className="w-full min-h-screen px-3 md:px-6 bg-gray-50 dark:bg-gray-900/50 transition-colors">
-      <div className="max-w-7xl mx-auto py-6">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl mt-3 text-center sm:text-left text-pretty text-gray-800 dark:text-white">
-          Hello, {user?.username}⚡
-        </h2>
-        <h3 className="font-outfit text-sm md:text-base lg:text-lg text-center sm:text-left text-pretty text-gray-600 dark:text-gray-300 mb-8">
-          Welcome to your financial command center! Here's your complete
-          financial overview. Track your income, monitor expenses, and make
-          smarter financial decisions with{" "}
-          <span className="font-bold text-primary">FinMate!</span>
-        </h3>
-        <div className="w-full mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-white">
-            <div className="flex justify-between items-center">
-              <div>
-                <h4 className="text-blue-100 text-sm font-medium mb-2">
-                  Total Balance
-                </h4>
-                <h4
-                  className={`text-3xl font-bold ${
-                    totalBalance < 0 ? "text-red-200" : "text-white"
-                  }`}
-                >
-                  {currencySymbol}
-                  <NumericFormat
-                    className="ml-1"
-                    value={totalBalance}
-                    displayType={"text"}
-                    thousandSeparator={true}
-                  />
-                </h4>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <Balance className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </div>
+    <section className="dashboard-shell w-full px-3 md:px-6 transition-colors">
+      <div className="max-w-7xl mx-auto py-6 md:py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="mb-8"
+        >
+          <p className="text-indigo-600 dark:text-indigo-300 text-sm font-semibold tracking-wide uppercase">
+            Financial Command Center
+          </p>
+          <h2 className="section-title text-3xl md:text-4xl lg:text-5xl mt-2 text-center sm:text-left">
+            Hello, {user?.username}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 ml-2">
+              ⚡
+            </span>
+          </h2>
+          <h3 className="section-subtitle text-sm md:text-base lg:text-lg text-center sm:text-left mt-2 max-w-3xl">
+            Track your net worth trajectory, monitor spending trends, and run your personal finances like a modern startup.
+          </h3>
+        </motion.div>
 
-          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-white">
-            <div className="flex justify-between items-center">
-              <div>
-                <h4 className="text-emerald-100 text-sm font-medium mb-2">
-                  Total Incomes
-                </h4>
-                <h4 className="text-3xl font-bold">
-                  {currencySymbol}
-                  <NumericFormat
-                    className="ml-1"
-                    value={totalIncome}
-                    displayType={"text"}
-                    thousandSeparator={true}
-                  />
-                </h4>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <Income className="w-6 h-6 text-white" />
-              </div>
-            </div>
+        {isLoading ? (
+          <DashboardCardSkeleton />
+        ) : (
+          <div className="w-full mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {[
+              {
+                label: "Total Balance",
+                value: totalBalance,
+                Icon: Balance,
+                tone: totalBalance >= 0 ? "from-indigo-600 to-violet-600" : "from-rose-600 to-pink-600",
+              },
+              {
+                label: "Total Income",
+                value: totalIncome,
+                Icon: Income,
+                tone: "from-cyan-500 to-indigo-600",
+              },
+              {
+                label: "Total Expense",
+                value: totalExpense,
+                Icon: Expense,
+                tone: "from-fuchsia-600 to-indigo-700",
+              },
+            ].map((card, index) => (
+              <motion.div
+                key={card.label}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: index * 0.08 }}
+                whileHover={{ y: -4 }}
+                className={`gradient-card ${card.tone} text-white p-6 md:p-7`}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h4 className="text-indigo-100 text-sm font-medium mb-2">{card.label}</h4>
+                    <h4 className="text-3xl font-bold leading-tight">
+                      {currencySymbol}
+                      <NumericFormat
+                        className="ml-1"
+                        value={card.value}
+                        displayType={"text"}
+                        thousandSeparator={true}
+                      />
+                    </h4>
+                  </div>
+                  <div className="pill-stat w-12 h-12 flex items-center justify-center">
+                    <card.Icon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
+        )}
 
-          <div className="bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-white">
-            <div className="flex justify-between items-center">
-              <div>
-                <h4 className="text-red-100 text-sm font-medium mb-2">
-                  Total Expenses
-                </h4>
-                <h4 className="text-3xl font-bold">
-                  {currencySymbol}
-                  <NumericFormat
-                    className="ml-1"
-                    value={totalExpense}
-                    displayType={"text"}
-                    thousandSeparator={true}
-                  />
-                </h4>
-              </div>
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <Expense className="w-6 h-6 text-white" />
-              </div>
+        <div className="w-full mt-8 grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="lg:col-span-3"
+          >
+            <div style={{ height: "420px" }}>
+              <Chart data={chartData} />
             </div>
-          </div>
-        </div>
-        <div className="w-full mt-8 md:flex gap-x-6">
-          <div className="w-full md:w-[60%] mb-8 md:mb-0">
-            <div style={{ height: "400px" }}>
-              <Chart data={data} />
-            </div>
-          </div>
-          <div className="w-full md:w-[40%]">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 h-full">
-              <h5 className="text-2xl font-semibold text-center md:text-left text-gray-900 dark:text-white mb-6">
-                Recent Transactions
-              </h5>
-              <div className="space-y-4 max-h-80 overflow-y-auto">
-                {recentHistory.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="lg:col-span-2"
+          >
+            <div className="surface-card p-6 h-full">
+              <h5 className="text-2xl font-semibold section-title mb-6">Recent Transactions</h5>
+              <div className="space-y-3 max-h-[330px] overflow-y-auto pr-1">
+                {isLoading ? (
+                  <TransactionSkeleton />
+                ) : recentHistory.length === 0 ? (
+                  <div className="text-center py-10">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-indigo-50 dark:bg-slate-800 rounded-full flex items-center justify-center">
                       <svg
-                        className="w-8 h-8 text-gray-400"
+                        className="w-8 h-8 text-indigo-400"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -203,64 +209,68 @@ const DashboardPage = () => {
                         />
                       </svg>
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400">
-                      No recent transactions to display.
-                    </p>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                      Start by adding your first transaction!
+                    <p className="section-subtitle">No recent transactions to display.</p>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+                      Add a transaction to activate your activity stream.
                     </p>
                   </div>
                 ) : (
-                  recentHistory.map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md hover:scale-[1.01] transition-all duration-200"
+                  recentHistory.map((transaction, index) => (
+                    <motion.div
+                      key={transaction._id || `${transaction.type}-${index}`}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.04 }}
+                      whileHover={{ y: -2 }}
+                      className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/70 px-4 py-3 shadow-sm"
                     >
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center gap-3">
                         <div
-                          className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                          className={`w-11 h-11 rounded-full flex items-center justify-center ${
                             transaction.type === "income"
-                              ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
-                              : "bg-gradient-to-r from-red-400 to-red-500"
+                              ? "bg-gradient-to-r from-cyan-500 to-indigo-600"
+                              : "bg-gradient-to-r from-fuchsia-500 to-indigo-600"
                           }`}
                         >
                           {transaction.type === "income" ? (
-                            <Income className="w-6 h-6 text-white" />
+                            <Income className="w-5 h-5 text-white" />
                           ) : (
-                            <Expense className="w-6 h-6 text-white" />
+                            <Expense className="w-5 h-5 text-white" />
                           )}
                         </div>
+
                         <div className="flex-1 min-w-0">
-                          <h6 className="font-semibold text-gray-900 dark:text-white capitalize truncate">
+                          <h6 className="font-semibold text-slate-900 dark:text-slate-100 capitalize truncate">
                             {transaction.title}
                           </h6>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                             {transaction.category}
                           </p>
                         </div>
+
                         <div className="text-right">
                           <p
-                            className={`text-lg font-bold ${
+                            className={`text-base md:text-lg font-bold ${
                               transaction.type === "income"
-                                ? "text-emerald-500"
-                                : "text-red-500"
+                                ? "text-cyan-600 dark:text-cyan-400"
+                                : "text-fuchsia-600 dark:text-fuchsia-400"
                             }`}
                           >
                             {transaction.type === "income" ? "+" : "-"}
                             {currencySymbol}
                             {transaction.amount}
                           </p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                          <p className="text-xs text-slate-400 dark:text-slate-500">
                             {moment(transaction.date).format("MMM DD")}
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

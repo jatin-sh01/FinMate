@@ -32,7 +32,10 @@ export const addIncome = asyncHandler(async (req, res) => {
 
 // Controller function to update an income
 export const updateIncome = asyncHandler(async (req, res) => {
-  const income = await Income.findById(req.params.id);
+  const income = await Income.findOne({
+    _id: req.params.id,
+    user: req.user._id,
+  });
 
   if (!income) {
     return res.status(404).json({ error: "Income not found!" });
@@ -50,7 +53,7 @@ export const updateIncome = asyncHandler(async (req, res) => {
     amount === income.amount &&
     category === income.category &&
     description === income.description &&
-    date === income.date
+    (!date || new Date(date).getTime() === new Date(income.date).getTime())
   ) {
     return res.status(400).json({ error: "No changes detected!" });
   }

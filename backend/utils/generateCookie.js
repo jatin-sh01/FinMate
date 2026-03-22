@@ -5,10 +5,12 @@ const generateCookie = (res, userId) => {
     expiresIn: "30d",
   });
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   res.cookie("session", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== "development",
-    sameSite: "Lax",
+    secure: isProduction,
+    sameSite: isProduction ? "None" : "Lax",
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 

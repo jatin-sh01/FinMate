@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { object, string } from "yup";
 import { toast } from "react-toastify";
 import { useDisclosure } from "@nextui-org/react";
@@ -31,9 +32,8 @@ const Login = () => {
   );
 
   const [otp, setOtp] = useState("");
-  const [step, setStep] = useState(1); // 1: Login, 2:(if user is not verified) OTP verification, 3: 2FA verification
+  const [step, setStep] = useState(1);
 
-  // 2FA states
   const [requires2FA, setRequires2FA] = useState(false);
   const [userEmailFor2FA, setUserEmailFor2FA] = useState("");
   const {
@@ -72,7 +72,6 @@ const Login = () => {
 
       dispatch(updateLoader(60));
 
-      // Check if 2FA is required
       if (res.requires2FA) {
         setUserEmailFor2FA(res.email);
         setRequires2FA(true);
@@ -147,7 +146,6 @@ const Login = () => {
     }
   };
 
-  // Handle 2FA verification success
   const handle2FAVerificationSuccess = async (user) => {
     try {
       dispatch(updateLoader(60));
@@ -181,47 +179,54 @@ const Login = () => {
   }, [countdown]);
 
   return (
-    <section className="w-full h-[90vh] px-6 sm:px-8 md:px-12 flex justify-center items-center">
-      <UserAuthForm
-        title={step === 1 ? "Welcome Back!" : "Verify your Email"}
-        imageSrc={loginImg}
-        imageTitle="Start using Now."
-        alt="login image"
-        form={
-          step === 1 ? (
-            <>
-              <EmailInput
-                value={email}
-                onChange={handleOnChange}
-                errors={errors}
+    <section className="w-full min-h-screen px-4 sm:px-8 md:px-12 py-10 sm:py-12 flex justify-center items-center dashboard-shell">
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="w-full flex justify-center"
+      >
+        <UserAuthForm
+          title={step === 1 ? "Welcome Back" : "Verify your Email"}
+          imageSrc={loginImg}
+          imageTitle="Start using now"
+          alt="login image"
+          form={
+            step === 1 ? (
+              <>
+                <EmailInput
+                  value={email}
+                  onChange={handleOnChange}
+                  errors={errors}
+                />
+                <PasswordInput
+                  value={password}
+                  onChange={handleOnChange}
+                  errors={errors}
+                />
+                <SubmitButton
+                  isLoading={loginLoading}
+                  handleSubmit={handleSubmit}
+                  isDisabled={!email || !password || hasErrors}
+                />
+              </>
+            ) : (
+              <OtpForm
+                otp={otp}
+                setOtp={setOtp}
+                email={email}
+                handleOtpSubmit={handleOtpSubmit}
+                resendOtp={resendOtp}
+                countdown={countdown}
+                verifyOtpLoading={verifyOtpLoading}
               />
-              <PasswordInput
-                value={password}
-                onChange={handleOnChange}
-                errors={errors}
-              />
-              <SubmitButton
-                isLoading={loginLoading}
-                handleSubmit={handleSubmit}
-                isDisabled={!email || !password || hasErrors}
-              />
-            </>
-          ) : (
-            <OtpForm
-              otp={otp}
-              setOtp={setOtp}
-              email={email}
-              handleOtpSubmit={handleOtpSubmit}
-              resendOtp={resendOtp}
-              countdown={countdown}
-              verifyOtpLoading={verifyOtpLoading}
-            />
-          )
-        }
-        footer={step === 1 && "Don't have an account?"}
-        footerLink={step === 1 && "Register"}
-        footerLinkPath={step === 1 && "/register"}
-      />
+            )
+          }
+          footer={step === 1 && "Don't have an account?"}
+          footerLink={step === 1 && "Register"}
+          footerLinkPath={step === 1 && "/register"}
+        />
+      </motion.div>
 
       <TwoFactorVerification
         isOpen={is2FAOpen}

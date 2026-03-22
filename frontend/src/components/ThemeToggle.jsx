@@ -1,15 +1,7 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from "@nextui-org/react";
 import { setThemeMode } from "../features/theme/themeSlice";
 
-// Icons for theme modes
 const SunIcon = ({ className = "" }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 20 20">
     <path
@@ -28,10 +20,12 @@ const MoonIcon = ({ className = "" }) => (
 
 const ThemeToggle = ({ className = "" }) => {
   const dispatch = useDispatch();
-  const { mode, theme } = useSelector((state) => state.theme);
+  const { mode } = useSelector((state) => state.theme);
 
-  const handleThemeChange = (selectedMode) => {
-    dispatch(setThemeMode(selectedMode));
+  const isDark = mode === "dark";
+
+  const handleThemeToggle = () => {
+    dispatch(setThemeMode(isDark ? "light" : "dark"));
   };
 
   const getIcon = () => {
@@ -45,52 +39,25 @@ const ThemeToggle = ({ className = "" }) => {
     }
   };
 
-  const getLabel = () => {
-    switch (mode) {
-      case "light":
-        return "Light";
-      case "dark":
-        return "Dark";
-      default:
-        return "Light";
-    }
-  };
-
   return (
-    <Dropdown>
-      <DropdownTrigger>
-        <Button
-          variant="bordered"
-          size="sm"
-          className={`min-w-unit-16 ${className}`}
-          startContent={getIcon()}
+    <button
+      type="button"
+      role="switch"
+      aria-checked={isDark}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
+      onClick={handleThemeToggle}
+      className={`theme-slider group ${className}`}
+    >
+      <span className="theme-slider-track">
+        <span
+          className={`theme-slider-thumb ${isDark ? "translate-x-7" : "translate-x-0"}`}
         >
-          <span className="hidden sm:inline">{getLabel()}</span>
-        </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="Theme selection"
-        selectedKeys={[mode]}
-        selectionMode="single"
-        onSelectionChange={(keys) => {
-          const selectedMode = Array.from(keys)[0];
-          handleThemeChange(selectedMode);
-        }}
-      >
-        <DropdownItem
-          key="light"
-          startContent={<SunIcon className="w-4 h-4" />}
-        >
-          Light
-        </DropdownItem>
-        <DropdownItem
-          key="dark"
-          startContent={<MoonIcon className="w-4 h-4" />}
-        >
-          Dark
-        </DropdownItem>
-      </DropdownMenu>
-    </Dropdown>
+          {getIcon()}
+        </span>
+        <span className="theme-slider-label-left">Light</span>
+        <span className="theme-slider-label-right">Dark</span>
+      </span>
+    </button>
   );
 };
 

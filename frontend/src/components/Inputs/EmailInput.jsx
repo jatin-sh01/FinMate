@@ -15,12 +15,16 @@ const EmailInput = ({ value, onChange, errors, noDescription }) => {
       errorMessage={errors?.email}
       placeholder="Enter your email"
       startContent={<Email />}
-      className="text-primary mt-2"
+      className="w-full mt-2"
       description={
         !noDescription && "We'll never share your email with anyone else."
       }
       classNames={{
-        description: !noDescription ? "text-secondary text-xs" : "",
+        label: "text-slate-700 dark:text-slate-200",
+        input:
+          "text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500",
+        inputWrapper: "premium-input rounded-xl shadow-sm",
+        description: !noDescription ? "text-slate-500 dark:text-slate-400 text-xs" : "",
         errorMessage: "text-error font-calSans",
       }}
     />

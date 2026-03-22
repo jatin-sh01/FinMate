@@ -4,7 +4,7 @@ import OtpInput from "react-otp-input";
 const CustomOtpInput = ({ otp, setOtp, email, onSubmit }) => {
   return (
     <>
-      <p className="text-sm lg:text-base text-center text-balance text-secondary mb-6">
+      <p className="text-sm lg:text-base text-center text-balance text-slate-600 dark:text-slate-300 mb-6">
         Enter the OTP sent to {email} to proceed.
       </p>
       <OtpInput
@@ -13,17 +13,10 @@ const CustomOtpInput = ({ otp, setOtp, email, onSubmit }) => {
         onSubmit={onSubmit}
         shouldAutoFocus
         numInputs={4}
-        renderSeparator={<span className="w-[1rem] md:w-[2rem]"></span>}
+        renderSeparator={<span className="w-2 sm:w-4 md:w-5"></span>}
         renderInput={(props) => <input {...props} />}
         inputType="tel"
-        inputStyle={{
-          width: "3.5rem",
-          height: "3.5rem",
-          borderRadius: "0.8rem",
-          fontSize: "2.5rem",
-          fontFamily: "Cal-Sans",
-          color: "#3B82F6",
-        }}
+        inputStyle="otp-cell"
       />
     </>
   );

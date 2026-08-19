@@ -33,5 +33,5 @@ jobs:
       - name: Deploy
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'Finmate'
+          app-name: 'fin-mate'
           package: .
